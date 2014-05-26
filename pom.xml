@@ -14,7 +14,16 @@
 			<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 
-	<dependencies>
+	<repositories>
+		<repository>
+			<id>dms-repo</id>
+			<url>https://dms.sztaki.hu/maven-public</url>
+			<releases><enabled>true</enabled></releases>
+			<snapshots><enabled>true</enabled></snapshots>
+		</repository>
+	</repositories>
+
+    <dependencies>
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-core</artifactId>
@@ -43,6 +52,11 @@
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-java</artifactId>
+			<version>0.5-rc2</version>
+		</dependency>
+		<dependency>
+			<groupId>eu.stratosphere</groupId>
+			<artifactId>stratosphere-streaming</artifactId>
 			<version>0.5-rc2</version>
 		</dependency>
 		<dependency>
