@@ -1,4 +1,4 @@
 strato-workshop
 ===============
 
-Stratosphere and Stratosphere codes focused for demonstration and workshop purposes.
+Stratosphere and Stratosphere Streaming codes focused for demonstration and workshop purposes.
