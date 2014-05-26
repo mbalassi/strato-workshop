@@ -13,15 +13,38 @@
  *
  **********************************************************************************************************************/
 
-package hu.sztaki.strato.workshop.strato.wordcount;
+package hu.sztaki.strato.workshop.streaming.wordcount;
 
-import eu.stratosphere.streaming.api.invokable.UserSinkInvokable;
+import eu.stratosphere.api.java.tuple.Tuple2;
+import eu.stratosphere.streaming.api.invokable.UserTaskInvokable;
 import eu.stratosphere.streaming.api.streamrecord.StreamRecord;
+import eu.stratosphere.streaming.state.MutableTableState;
 
-public class WordCountSink extends UserSinkInvokable {
+public class WordCountCounter extends UserTaskInvokable {
+
+	private MutableTableState<String, Integer> wordCounts = new MutableTableState<String, Integer>();
+	private String word = "";
+	private Integer count = 0;
+
+	private StreamRecord outRecord = new StreamRecord(new Tuple2<String, Integer>());
 
 	@Override
 	public void invoke(StreamRecord record) throws Exception {
+		word = record.getString(0);
+
+		if (wordCounts.containsKey(word)) {
+			count = wordCounts.get(word) + 1;
+			wordCounts.put(word, count);
+		} else {
+			count = 1;
+			wordCounts.put(word, 1);
+		}
+
+		outRecord.setString(0, word);
+		outRecord.setInteger(1, count);
+
+		emit(outRecord);
+		performanceCounter.count();
 
 	}
 
