@@ -13,7 +13,7 @@
  *
  **********************************************************************************************************************/
 
-package hu.sztaki.strato.workshop.streaming.wordcount;
+package hu.sztaki.stratosphere.workshop.streaming.wordcount;
 
 import java.net.InetSocketAddress;
 

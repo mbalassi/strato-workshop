@@ -13,39 +13,39 @@
  *
  **********************************************************************************************************************/
 
-package hu.sztaki.strato.workshop.streaming.wordcount;
+package hu.sztaki.stratosphere.workshop.streaming.wordcount;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-
-import eu.stratosphere.api.java.tuple.Tuple1;
-import eu.stratosphere.streaming.api.invokable.UserSourceInvokable;
+import eu.stratosphere.api.java.tuple.Tuple2;
+import eu.stratosphere.streaming.api.invokable.UserTaskInvokable;
 import eu.stratosphere.streaming.api.streamrecord.StreamRecord;
+import eu.stratosphere.streaming.state.MutableTableState;
 
-public class WordCountSourceSplitter extends UserSourceInvokable {
+public class WordCountCounter extends UserTaskInvokable {
 
-	private BufferedReader br = null;
-	private String line = new String();
-	private StreamRecord outRecord = new StreamRecord(new Tuple1<String>());
+	private MutableTableState<String, Integer> wordCounts = new MutableTableState<String, Integer>();
+	private String word = "";
+	private Integer count = 0;
+
+	private StreamRecord outRecord = new StreamRecord(new Tuple2<String, Integer>());
 
 	@Override
-	public void invoke() throws Exception {
-		br = new BufferedReader(new FileReader(
-				"src/test/resources/testdata/hamlet.txt"));
-		while (true) {
-			line = br.readLine();
-			if (line == null) {
-				break;
-			}
-			if (line != "") {
-				line=line.replaceAll("[\\-\\+\\.\\^:,]", "");
-				for (String word : line.split(" ")) {
-					outRecord.setString(0, word);
-					System.out.println("word=" + word);
-					emit(outRecord);
-					performanceCounter.count();
-				}
-			}
+	public void invoke(StreamRecord record) throws Exception {
+		word = record.getString(0);
+
+		if (wordCounts.containsKey(word)) {
+			count = wordCounts.get(word) + 1;
+			wordCounts.put(word, count);
+		} else {
+			count = 1;
+			wordCounts.put(word, 1);
 		}
+
+		outRecord.setString(0, word);
+		outRecord.setInteger(1, count);
+
+		emit(outRecord);
+		performanceCounter.count();
+
 	}
+
 }

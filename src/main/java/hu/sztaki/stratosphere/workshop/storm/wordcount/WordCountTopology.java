@@ -13,7 +13,7 @@
  *
  **********************************************************************************************************************/
 
-package hu.sztaki.strato.workshop.storm.wordcount;
+package hu.sztaki.stratosphere.workshop.storm.wordcount;
 
 import eu.stratosphere.streaming.util.PerformanceCounter;
 

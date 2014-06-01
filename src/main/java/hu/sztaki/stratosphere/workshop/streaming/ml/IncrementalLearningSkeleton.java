@@ -12,7 +12,7 @@
  * specific language governing permissions and limitations under the License.
  *
  **********************************************************************************************************************/
-package hu.sztaki.strato.workshop.streaming.ml;
+package hu.sztaki.stratosphere.workshop.streaming.ml;
 
 import java.net.InetSocketAddress;
 

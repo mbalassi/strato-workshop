@@ -13,16 +13,39 @@
  *
  **********************************************************************************************************************/
 
-package hu.sztaki.strato.workshop.streaming.wordcount;
+package hu.sztaki.stratosphere.workshop.streaming.wordcount;
 
-import eu.stratosphere.streaming.api.invokable.UserSinkInvokable;
+import java.io.BufferedReader;
+import java.io.FileReader;
+
+import eu.stratosphere.api.java.tuple.Tuple1;
+import eu.stratosphere.streaming.api.invokable.UserSourceInvokable;
 import eu.stratosphere.streaming.api.streamrecord.StreamRecord;
 
-public class WordCountSink extends UserSinkInvokable {
+public class WordCountSourceSplitter extends UserSourceInvokable {
+
+	private BufferedReader br = null;
+	private String line = new String();
+	private StreamRecord outRecord = new StreamRecord(new Tuple1<String>());
 
 	@Override
-	public void invoke(StreamRecord record) throws Exception {
-
+	public void invoke() throws Exception {
+		br = new BufferedReader(new FileReader(
+				"src/test/resources/testdata/hamlet.txt"));
+		while (true) {
+			line = br.readLine();
+			if (line == null) {
+				break;
+			}
+			if (line != "") {
+				line=line.replaceAll("[\\-\\+\\.\\^:,]", "");
+				for (String word : line.split(" ")) {
+					outRecord.setString(0, word);
+					System.out.println("word=" + word);
+					emit(outRecord);
+					performanceCounter.count();
+				}
+			}
+		}
 	}
-
 }
