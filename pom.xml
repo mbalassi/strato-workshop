@@ -27,37 +27,37 @@
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-core</artifactId>
-            <version>0.5-rc2</version>
+            <version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-tests</artifactId>
-			<version>0.5-rc2</version>
+			<version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-compiler</artifactId>
-			<version>0.5-rc2</version>
+			<version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-runtime</artifactId>
-			<version>0.5-rc2</version>
+			<version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-clients</artifactId>
-			<version>0.5-rc2</version>
+			<version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-java</artifactId>
-			<version>0.5-rc2</version>
+			<version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>eu.stratosphere</groupId>
 			<artifactId>stratosphere-streaming</artifactId>
-			<version>0.5-rc2</version>
+			<version>0.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.storm</groupId>
