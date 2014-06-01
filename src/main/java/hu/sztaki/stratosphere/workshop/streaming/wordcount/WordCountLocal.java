@@ -44,7 +44,7 @@ public class WordCountLocal {
 
 	public static void main(String[] args) {
 
-		LogUtils.initializeDefaultConsoleLogger(Level.DEBUG, Level.INFO);
+		LogUtils.initializeDefaultConsoleLogger(Level.INFO, Level.INFO);
 		ClusterUtil.runOnMiniCluster(getJobGraph());
 	}
 }

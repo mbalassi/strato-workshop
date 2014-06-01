@@ -30,6 +30,7 @@ import eu.stratosphere.streaming.api.invokable.UserSourceInvokable;
 import eu.stratosphere.streaming.api.invokable.UserTaskInvokable;
 import eu.stratosphere.streaming.api.streamrecord.StreamRecord;
 import eu.stratosphere.streaming.faulttolerance.FaultToleranceType;
+import eu.stratosphere.streaming.util.ClusterUtil;
 import eu.stratosphere.streaming.util.LogUtils;
 
 public class IncrementalLearningSkeleton {
@@ -144,8 +145,9 @@ public class IncrementalLearningSkeleton {
 		}
 	}
 
-	private static JobGraph getJobGraph() throws Exception {
-		JobGraphBuilder graphBuilder = new JobGraphBuilder("IncrementalLearning", FaultToleranceType.NONE);
+	private static JobGraph getJobGraph() {
+		JobGraphBuilder graphBuilder = new JobGraphBuilder("IncrementalLearning",
+				FaultToleranceType.NONE);
 
 		graphBuilder.setSource("NewData", NewDataSource.class, 1, 1);
 		graphBuilder.setSource("TrainingData", TrainingDataSource.class, 1, 1);
@@ -165,33 +167,7 @@ public class IncrementalLearningSkeleton {
 
 		// set logging parameters for local run
 		LogUtils.initializeDefaultConsoleLogger(Level.INFO, Level.INFO);
+		ClusterUtil.runOnMiniCluster(getJobGraph());
 
-		try {
-
-			// generate JobGraph
-			JobGraph jG = getJobGraph();
-			Configuration configuration = jG.getJobConfiguration();
-
-			if (args.length == 0 || args[0].equals("local")) {
-				System.out.println("Running in Local mode");
-				// start local cluster and submit JobGraph
-				NepheleMiniCluster exec = new NepheleMiniCluster();
-				exec.start();
-
-				Client client = new Client(new InetSocketAddress("localhost", 6498), configuration);
-
-				client.run(jG, true);
-
-				exec.stop();
-			} else if (args[0].equals("cluster")) {
-				System.out.println("Running in Cluster mode");
-				// submit JobGraph to the running cluster
-				Client client = new Client(new InetSocketAddress("dell150", 6123), configuration);
-				client.run(jG, true);
-			}
-
-		} catch (Exception e) {
-			System.out.println(e);
-		}
 	}
 }

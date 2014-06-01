@@ -176,7 +176,7 @@ public class WordCountTopology {
 			
 			StormSubmitter.submitTopology("wordcount", conf, builder.createTopology());
 		} else {
-			System.out.println("USAGE:\n run <spoutParallelism> <counterParallelism> <numberOfWorkers>");
+			System.out.println("USAGE:\n run <spoutParallelism> <counterParallelism> <sinkParallelism> <numberOfWorkers>");
 			/*conf.setMaxTaskParallelism(3);
 
 			LocalCluster cluster = new LocalCluster();

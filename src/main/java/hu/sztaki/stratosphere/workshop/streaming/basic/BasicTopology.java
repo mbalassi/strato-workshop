@@ -65,7 +65,7 @@ public class BasicTopology {
 		@Override
 		public void invoke(StreamRecord record) throws Exception {
 			// do nothing
-			record.getField(0);
+			System.out.println(record.getField(0));
 		}
 	}
 
