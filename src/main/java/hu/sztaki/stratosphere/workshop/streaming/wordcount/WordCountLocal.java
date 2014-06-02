@@ -26,8 +26,7 @@ import eu.stratosphere.streaming.util.LogUtils;
 public class WordCountLocal {
 
 	public static JobGraph getJobGraph() {
-		JobGraphBuilder graphBuilder = new JobGraphBuilder("WordCountTopology",
-				FaultToleranceType.NONE);
+		JobGraphBuilder graphBuilder = new JobGraphBuilder("WordCountTopology");
 		graphBuilder.setSource("WordCountSourceSplitter", WordCountSourceSplitter.class);
 		graphBuilder.setTask("WordCountCounter", WordCountCounter.class, 1, 1);
 		graphBuilder.setSink("WordCountSink", WordCountSink.class);

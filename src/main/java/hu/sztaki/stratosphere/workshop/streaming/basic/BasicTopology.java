@@ -69,11 +69,10 @@ public class BasicTopology {
 	}
 
 	private static JobGraph getJobGraph() {
-		JobGraphBuilder graphBuilder = new JobGraphBuilder("BasicStreamingTopology",
-				FaultToleranceType.NONE);
-		graphBuilder.setSource("BasicSource", BasicSource.class, 1, 1);
-		graphBuilder.setTask("BasicTask", BasicTask.class, 1, 1);
-		graphBuilder.setSink("BasicSink", BasicSink.class, 1, 1);
+		JobGraphBuilder graphBuilder = new JobGraphBuilder("BasicStreamingTopology");
+		graphBuilder.setSource("BasicSource", new BasicSource(), 1, 1);
+		graphBuilder.setTask("BasicTask", new BasicTask(), 1, 1);
+		graphBuilder.setSink("BasicSink", new BasicSink(), 1, 1);
 
 		graphBuilder.shuffleConnect("BasicSource", "BasicTask");
 		graphBuilder.shuffleConnect("BasicTask", "BasicSink");
