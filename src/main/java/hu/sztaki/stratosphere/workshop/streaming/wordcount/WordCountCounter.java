@@ -22,6 +22,7 @@ import eu.stratosphere.streaming.state.MutableTableState;
 
 public class WordCountCounter extends UserTaskInvokable {
 
+	private static final long serialVersionUID = 1L;
 	private MutableTableState<String, Integer> wordCounts = new MutableTableState<String, Integer>();
 	private String word = "";
 	private Integer count = 0;
@@ -44,7 +45,7 @@ public class WordCountCounter extends UserTaskInvokable {
 		outRecord.setInteger(1, count);
 
 		emit(outRecord);
-		performanceCounter.count();
+//		performanceCounter.count();
 
 	}
 

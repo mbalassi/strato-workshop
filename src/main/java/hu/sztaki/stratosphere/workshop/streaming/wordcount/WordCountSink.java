@@ -20,6 +20,8 @@ import eu.stratosphere.streaming.api.streamrecord.StreamRecord;
 
 public class WordCountSink extends UserSinkInvokable {
 
+	private static final long serialVersionUID = 1L;
+
 	@Override
 	public void invoke(StreamRecord record) throws Exception {
 
