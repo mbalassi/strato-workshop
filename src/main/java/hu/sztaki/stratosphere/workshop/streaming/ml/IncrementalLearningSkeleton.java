@@ -14,15 +14,10 @@
  **********************************************************************************************************************/
 package hu.sztaki.stratosphere.workshop.streaming.ml;
 
-import java.net.InetSocketAddress;
-
 import org.apache.log4j.Level;
 
 import eu.stratosphere.api.java.tuple.Tuple;
 import eu.stratosphere.api.java.tuple.Tuple1;
-import eu.stratosphere.client.minicluster.NepheleMiniCluster;
-import eu.stratosphere.client.program.Client;
-import eu.stratosphere.configuration.Configuration;
 import eu.stratosphere.nephele.jobgraph.JobGraph;
 import eu.stratosphere.streaming.api.JobGraphBuilder;
 import eu.stratosphere.streaming.api.invokable.UserSinkInvokable;
@@ -37,6 +32,7 @@ public class IncrementalLearningSkeleton {
 
 	// Source for feeding new data for prediction
 	public static class NewDataSource extends UserSourceInvokable {
+		private static final long serialVersionUID = 1L;
 
 		StreamRecord record = new StreamRecord(new Tuple1<Integer>(1));
 
@@ -58,6 +54,7 @@ public class IncrementalLearningSkeleton {
 
 	// Source for feeding new training data for partial model building
 	public static class TrainingDataSource extends UserSourceInvokable {
+		private static final long serialVersionUID = 1L;
 
 		// Number of tuples grouped for building partial model
 		private final int BATCH_SIZE = 1000;
@@ -89,6 +86,7 @@ public class IncrementalLearningSkeleton {
 
 	// Task for building up-to-date partial models on new training data
 	public static class PartialModelBuilder extends UserTaskInvokable {
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public void invoke(StreamRecord record) throws Exception {
@@ -105,6 +103,7 @@ public class IncrementalLearningSkeleton {
 	// Task for performing prediction using the model produced in
 	// batch-processing and the up-to-date partial model
 	public static class Predictor extends UserTaskInvokable {
+		private static final long serialVersionUID = 1L;
 
 		StreamRecord batchModel = null;
 		StreamRecord partialModel = null;
@@ -139,6 +138,8 @@ public class IncrementalLearningSkeleton {
 
 	public static class Sink extends UserSinkInvokable {
 
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void invoke(StreamRecord record) throws Exception {
 			// do nothing
@@ -149,11 +150,11 @@ public class IncrementalLearningSkeleton {
 		JobGraphBuilder graphBuilder = new JobGraphBuilder("IncrementalLearning",
 				FaultToleranceType.NONE);
 
-		graphBuilder.setSource("NewData", NewDataSource.class, 1, 1);
-		graphBuilder.setSource("TrainingData", TrainingDataSource.class, 1, 1);
-		graphBuilder.setTask("PartialModelBuilder", PartialModelBuilder.class, 1, 1);
-		graphBuilder.setTask("Predictor", Predictor.class, 1, 1);
-		graphBuilder.setSink("Sink", Sink.class, 1, 1);
+		graphBuilder.setSource("NewData", new NewDataSource(), 1, 1);
+		graphBuilder.setSource("TrainingData", new TrainingDataSource(), 1, 1);
+		graphBuilder.setTask("PartialModelBuilder", new PartialModelBuilder(), 1, 1);
+		graphBuilder.setTask("Predictor", new Predictor(), 1, 1);
+		graphBuilder.setSink("Sink", new Sink(), 1, 1);
 
 		graphBuilder.shuffleConnect("TrainingData", "PartialModelBuilder");
 		graphBuilder.shuffleConnect("NewData", "Predictor");

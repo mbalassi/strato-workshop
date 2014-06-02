@@ -26,6 +26,7 @@ public class BasicRMQSender {
 			System.out.println("Enter next message (q to quit):");
 			message = br.readLine();
 			if(message.equals("q")){
+				channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
 				break;
 			}
 			channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
