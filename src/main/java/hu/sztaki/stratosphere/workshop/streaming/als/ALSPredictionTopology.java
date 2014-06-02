@@ -48,9 +48,9 @@ public class ALSPredictionTopology {
 
 			Double[] vector = new Double[vectorString.length];
 
-			//TODO fill vector 
-			
-			//TODO fill & emit outputRecord
+			// TODO fill vector
+
+			// TODO fill & emit outputRecord
 		}
 	}
 
@@ -69,6 +69,7 @@ public class ALSPredictionTopology {
 
 		Double[] partialTopItemScores = new Double[topItemCount];
 		Long[] partialTopItemIDs = new Long[topItemCount];
+
 		public PartialTopItemsTask(int topItemCount) {
 			this.topItemCount = topItemCount;
 		}
@@ -80,8 +81,8 @@ public class ALSPredictionTopology {
 
 			// calculate scores for all items
 			for (int item = 0; item < itemIDs.length; item++) {
-				
-				//TODO calculate scores for all items
+
+				// TODO calculate scores for all items
 
 			}
 
@@ -89,7 +90,7 @@ public class ALSPredictionTopology {
 			partialTopItemIDs = Arrays.copyOfRange(itemIDs, 0, topItemCount);
 			partialTopItemScores = Arrays.copyOfRange(scores, 0, topItemCount);
 
-			//TODO fill partialTopItemIDs and partialTopItemScores 
+			// TODO fill partialTopItemIDs and partialTopItemScores
 
 			outputRecord.setField(0, record.getField(0));
 			outputRecord.setField(1, partialTopItemIDs);
@@ -157,9 +158,9 @@ public class ALSPredictionTopology {
 			for (int i = 0; i < pTopScores.length; i++) {
 				if (!Arrays.asList(currentTopIDs).contains(pTopIDs[i])) {
 					for (int j = 0; j < currentTopScores.length; j++) {
-						
-						//TODO update top items if needed
-					
+
+						// TODO update top items if needed
+
 					}
 				}
 			}
@@ -177,13 +178,13 @@ public class ALSPredictionTopology {
 	}
 
 	public static JobGraph getJobGraph(int partitionCount, int topItemCount) {
-		
-		JobGraphBuilder graphBuilder = new JobGraphBuilder("ALS prediction",
-				FaultToleranceType.NONE);
-		
+
+		JobGraphBuilder graphBuilder = new JobGraphBuilder("ALS prediction");
+
 		graphBuilder.setSource("IDsource", new RMQSource("localhost", "id-queue"), 1, 1);
 		graphBuilder.setTask("GetUserVectorTask", new GetUserVectorTask(), 1, 1);
-		graphBuilder.setTask("PartialTopItemsTask", new PartialTopItemsTask(topItemCount), partitionCount, partitionCount);
+		graphBuilder.setTask("PartialTopItemsTask", new PartialTopItemsTask(topItemCount),
+				partitionCount, partitionCount);
 		graphBuilder.setTask("TopItemsTask", new TopItemsTask(partitionCount), 1, 1);
 		graphBuilder.setSink("TopItemsProcessorSink", new TopItemsProcessorSink(), 1, 1);
 
@@ -198,7 +199,7 @@ public class ALSPredictionTopology {
 	public static void main(String[] arg) {
 		LogUtils.initializeDefaultConsoleLogger(Level.DEBUG, Level.INFO);
 
-		ClusterUtil.runOnMiniCluster(getJobGraph(2,2));
+		ClusterUtil.runOnMiniCluster(getJobGraph(2, 2));
 	}
 
 }
