@@ -39,21 +39,22 @@ import backtype.storm.tuple.Values;
 import eu.stratosphere.streaming.util.PerformanceCounter;
 
 public class WordCountTopology {
-	static final String counterPath = "/home/storm/storm-dist/logs/counter/";
-
 	public static class TextSpout extends BaseRichSpout {
 		private static final long serialVersionUID = 1L;
 
 		private PerformanceCounter performanceCounter;
 		SpoutOutputCollector _collector;
 
-		String path;
+		private String path;
+		private String counterPath;
+		
 		BufferedReader br = null;
 		private String line = new String();
 		private Values outRecord = new Values("");
 
-		public TextSpout(String fileName) {
-			path = fileName;
+		public TextSpout(String path, String counterPath) {
+			this.path = path;
+			this.counterPath = counterPath;
 		}
 
 		@Override
@@ -105,11 +106,17 @@ public class WordCountTopology {
 		private PerformanceCounter performanceCounter;
 		OutputCollector _collector;
 
+		private String counterPath;
+		
 		private Map<String, Integer> wordCounts = new HashMap<String, Integer>();
 		private String word = "";
 		private Integer count = 0;
 
 		private Values outRecord = new Values("", 0);
+
+		public WordCount(String counterPath) {
+			this.counterPath = counterPath;
+		}
 
 		@Override
 		public void prepare(Map map, TopologyContext context, OutputCollector collector) {
@@ -161,22 +168,24 @@ public class WordCountTopology {
 
 	public static void main(String[] args) throws Exception {
 
-		if (args != null && args.length == 6) {
+		if (args != null && args.length == 7) {
 			try {
 				boolean runOnCluster = args[0].equals("cluster");
 				String fileName = args[1];
+				String counterPath = args[2];
+				
 				if (!(new File(fileName)).exists()) {
 					throw new FileNotFoundException();
 				}
 
-				int spoutParallelism = Integer.parseInt(args[2]);
-				int counterParallelism = Integer.parseInt(args[3]);
-				int sinkParallelism = Integer.parseInt(args[4]);
-				int numberOfWorkers = Integer.parseInt(args[5]);
+				int spoutParallelism = Integer.parseInt(args[3]);
+				int counterParallelism = Integer.parseInt(args[4]);
+				int sinkParallelism = Integer.parseInt(args[5]);
+				int numberOfWorkers = Integer.parseInt(args[6]);
 
 				TopologyBuilder builder = new TopologyBuilder();
-				builder.setSpout("spout", new TextSpout(fileName), spoutParallelism);
-				builder.setBolt("count", new WordCount(), counterParallelism).fieldsGrouping(
+				builder.setSpout("spout", new TextSpout(fileName, counterPath), spoutParallelism);
+				builder.setBolt("count", new WordCount(counterPath), counterParallelism).fieldsGrouping(
 						"spout", new Fields("word"));
 				builder.setBolt("sink", new Sink(), sinkParallelism).shuffleGrouping("count");
 
@@ -211,6 +220,6 @@ public class WordCountTopology {
 
 	private static void printUsage() {
 		System.out
-				.println("USAGE:\n run <local/cluster> <source file> <spout parallelism> <counter parallelism> <sink parallelism> <number of workers>");
+				.println("USAGE:\n run <local/cluster> <performance counter path> <source file> <spout parallelism> <counter parallelism> <sink parallelism> <number of workers>");
 	}
 }

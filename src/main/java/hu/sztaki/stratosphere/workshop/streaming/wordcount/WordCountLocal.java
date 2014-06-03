@@ -19,6 +19,9 @@ import org.apache.log4j.Level;
 
 import eu.stratosphere.nephele.jobgraph.JobGraph;
 import eu.stratosphere.streaming.api.JobGraphBuilder;
+import eu.stratosphere.streaming.examples.wordcount.WordCountCounter;
+import eu.stratosphere.streaming.examples.wordcount.WordCountSink;
+import eu.stratosphere.streaming.examples.wordcount.WordCountSourceSplitter;
 import eu.stratosphere.streaming.faulttolerance.FaultToleranceType;
 import eu.stratosphere.streaming.util.ClusterUtil;
 import eu.stratosphere.streaming.util.LogUtils;
@@ -26,10 +29,10 @@ import eu.stratosphere.streaming.util.LogUtils;
 public class WordCountLocal {
 
 	public static JobGraph getJobGraph() {
-		JobGraphBuilder graphBuilder = new JobGraphBuilder("WordCountTopology");
-		graphBuilder.setSource("WordCountSourceSplitter", WordCountSourceSplitter.class);
-		graphBuilder.setTask("WordCountCounter", WordCountCounter.class, 1, 1);
-		graphBuilder.setSink("WordCountSink", WordCountSink.class);
+		JobGraphBuilder graphBuilder = new JobGraphBuilder("testGraph", FaultToleranceType.NONE);
+		graphBuilder.setSource("WordCountSourceSplitter", new WordCountSourceSplitter("src/test/resources/testdata/hamlet.txt"));
+		graphBuilder.setTask("WordCountCounter", new WordCountCounter());
+		graphBuilder.setSink("WordCountSink", new WordCountSink());
 
 		graphBuilder.fieldsConnect("WordCountSourceSplitter", "WordCountCounter", 0);
 		graphBuilder.shuffleConnect("WordCountCounter", "WordCountSink");
