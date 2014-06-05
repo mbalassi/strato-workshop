@@ -14,6 +14,8 @@
  **********************************************************************************************************************/
 package hu.sztaki.stratosphere.workshop.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
 public class Util {
@@ -130,5 +132,21 @@ public class Util {
 			topIDs[i] = newTopIDs[i];
 			topValues[i] = newTopValues[i];
 		}
+	}
+
+	static int k;
+	static int currentPartition = 0;
+	static boolean read = false;
+	static List<double[][]> itemMatrix = new ArrayList<double[][]>();
+
+	public static double[][] getItemMatrix(int k) {
+		if (!read) {
+			List<double[]> rows = new ArrayList<double[]>();
+			// parse files
+			read = true;
+		}
+		double[][] rm = itemMatrix.get(currentPartition);
+		currentPartition++;
+		return rm;
 	}
 }
