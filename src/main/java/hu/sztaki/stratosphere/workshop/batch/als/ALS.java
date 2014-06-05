@@ -16,6 +16,7 @@
 package hu.sztaki.stratosphere.workshop.batch.als;
 
 import eu.stratosphere.api.java.IterativeDataSet;
+import eu.stratosphere.core.fs.FileSystem;
 import hu.sztaki.stratosphere.workshop.batch.outputformat.ColumnOutputFormat;
 
 import eu.stratosphere.api.java.operators.DataSink;
@@ -39,12 +40,12 @@ public class ALS {
             .types(Integer.class,Integer.class,Double.class);
 
     //for random q matrix as input
-    DataSet<Tuple2<Integer,double[]>> q = matrixSource
+    DataSet<Tuple2<Integer,double[]>> randomMatrix = matrixSource
             .groupBy(1)
             .reduceGroup(new RandomMatrix(k))
             .name("Create q as a random matrix");
 
-    IterativeDataSet<Tuple2<Integer, double[]>> initialQ = q.iterate(numIterations);
+    IterativeDataSet<Tuple2<Integer, double[]>> initialQ = randomMatrix.iterate(numIterations);
 
     DataSet<Tuple3<Integer, Integer, double[]>> multipliedQ = matrixSource.join(initialQ)
             .where(1)
@@ -67,7 +68,8 @@ public class ALS {
             .with( new QIteration(k,lambda))
             .name("For fixed p calculates optimal q");
 
-    q = initialQ.closeWith(nextQ);
+    DataSet<Tuple2<Integer,double[]>> q = initialQ.closeWith(nextQ);
+
 
     multipliedQ = matrixSource.join(q)
             .where(1)
@@ -82,9 +84,11 @@ public class ALS {
 
     //output:
     ColumnOutputFormat pFormat = new ColumnOutputFormat(output + "/p");
+    pFormat.setWriteMode(FileSystem.WriteMode.OVERWRITE);
     DataSink<Tuple2<Integer,double[]>> pOut = p.output(pFormat);
 
     ColumnOutputFormat qFormat = new ColumnOutputFormat(output + "/q");
+    qFormat.setWriteMode(FileSystem.WriteMode.OVERWRITE);
     DataSink<Tuple2<Integer,double[]>> qOut = q.output(qFormat);
 
     env.setDegreeOfParallelism(numSubTasks);
@@ -93,11 +97,11 @@ public class ALS {
   }
 
   public static void main(String[] args) throws Exception {
-    String sampleDB1 = ALS.class.getResource("/testdata/als_batch/sampledb1.csv").getPath();
     String sampleDB2 = ALS.class.getResource("/testdata/als_batch/sampledb2.csv").getPath();
     String sampleDB3 = ALS.class.getResource("/testdata/als_batch/sampledb3.csv").getPath();
+    String outputPath =  "file:///" + System.getProperty("user.dir");
 
     // numSubtasks, matrixInput, output, k, numIterations, lambda
-    executeALS(2, sampleDB1, "als_output", 5, 3, 0.1);
+    executeALS(1, "file://" + sampleDB2, outputPath + "/als_output", 5, 3, 0.1);
   }
 }

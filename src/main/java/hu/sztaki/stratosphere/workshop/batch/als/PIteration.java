@@ -45,6 +45,10 @@ public class PIteration extends CoGroupFunction<Tuple3<Integer,Integer,Double>,T
       Collector<Tuple2<Integer,double[]>> out) {
     double[][] matrix = new double[k][k];
     double[][] vector = new double[k][1];
+
+    if(!q.hasNext()){
+      return;
+    }
     
     double element_ = lambda; //Regularization with Frobenius-norm 
      
@@ -56,13 +60,12 @@ public class PIteration extends CoGroupFunction<Tuple3<Integer,Integer,Double>,T
 
     Map<Integer, Double> ratings = new HashMap<Integer, Double>();
     while (matrixElements.hasNext()) {
-      
       //TODO: Fill the ratings map with (columnId,elementValue) pairs from matrixElements
-    
-    
-    
+      Tuple3<Integer,Integer,Double> element = matrixElements.next();
+      id_ = element.f0;
+      ratings.put(element.f1,element.f2);
     }
-    
+
     while (q.hasNext()) {
       Tuple3<Integer,Integer,double[]> column = q.next();
       double[] column_elements = column.f2;
@@ -75,7 +78,7 @@ public class PIteration extends CoGroupFunction<Tuple3<Integer,Integer,Double>,T
         vector[i][0] += rating * column_elements[i];
       }
     }
-    
+
     Matrix a = new Matrix(matrix);
     Matrix b = new Matrix(vector);
     Matrix result = a.solve(b);

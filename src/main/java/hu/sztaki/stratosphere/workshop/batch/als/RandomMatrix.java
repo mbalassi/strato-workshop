@@ -41,11 +41,12 @@ public class RandomMatrix extends GroupReduceFunction<Tuple3<Integer,Integer,Dou
     double[] vector_elements= new double[k];
    
     //TODO: generate a k length random vector for each column of Q. Hint: for faster convergence generate the elements from [1,1.5] interval.
-  
-  
+    for (int i = 0; i < k; ++i) {
+      vector_elements[i]= 1 + RANDOM.nextDouble() / 2;
+    }
     
     //TODO: collect the generated columns in the given Collector.
-
-  
+    vector.setFields(element.f1,vector_elements);
+    out.collect(vector);
   }
 }

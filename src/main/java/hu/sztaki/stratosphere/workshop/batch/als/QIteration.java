@@ -15,7 +15,6 @@
 
 package hu.sztaki.stratosphere.workshop.batch.als;
 
-import java.util.Collection;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -46,6 +45,10 @@ public class QIteration
 	public void coGroup(Iterator<Tuple3<Integer, Integer, Double>> matrixElements,
 			Iterator<Tuple3<Integer, Integer, double[]>> p, Collector<Tuple2<Integer, double[]>> out) {
 
+        if(!p.hasNext()){
+          return;
+        }
+
 		double[][] matrix = new double[k][k];
 		double[][] vector = new double[k][1];
 
@@ -65,21 +68,30 @@ public class QIteration
 		}
 
 		while (p.hasNext()) {
+          // TODO: create the kxk double[][] matrix from the rows of P
+          // TODO: create the kx1 vector for the linear equation system
+          Tuple3<Integer,Integer,double[]> row = p.next();
+          double[] row_elements = row.f2;
+          id_ = row.f1;
+          double rating = ratings.get(row.f0);
+          for (int i = 0; i < k; ++i) {
+            for (int j = 0; j < k; ++j) {
+              matrix[i][j] += row_elements[i] * row_elements[j];
+            }
+            vector[i][0] += rating * row_elements[i];
+          }
 
-			// TODO: create the kxk double[][] matrix from the rows of P
-			// TODO: create the kx1 vector for the linear equation system
+        }
 
-			Matrix a = new Matrix(matrix);
-			Matrix b = new Matrix(vector);
-			Matrix result = a.solve(b);
+        Matrix a = new Matrix(matrix);
+        Matrix b = new Matrix(vector);
+        Matrix result = a.solve(b);
 
-			double[] result_elements = new double[k];
-			for (int i = 0; i < k; ++i) {
-				result_elements[i] = result.get(i, 0);
-			}
-			result_.setFields(id_, result_elements);
-			out.collect(result_);
-		}
-
+        double[] result_elements = new double[k];
+        for (int i = 0; i < k; ++i) {
+            result_elements[i] = result.get(i, 0);
+        }
+        result_.setFields(id_, result_elements);
+        out.collect(result_);
 	}
 }
