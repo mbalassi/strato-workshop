@@ -17,7 +17,6 @@ package hu.sztaki.stratosphere.workshop.streaming.als;
 
 import hu.sztaki.stratosphere.workshop.utils.Util;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -106,7 +105,7 @@ public class ALSPredictionTopology {
 		Map<Long, Long[]> topIDs = new HashMap<Long, Long[]>();
 		Map<Long, Double[]> topScores = new HashMap<Long, Double[]>();
 
-		StreamRecord outputRecord = new StreamRecord(new Tuple3<Long, Long[], Double[]>());
+		// TODO create a StreamRecord object for sending the results (uid, item IDs, global top scores)
 
 		public TopItemsTask(int numberOfPartitions) {
 			this.numberOfPartitions = numberOfPartitions;
@@ -119,30 +118,25 @@ public class ALSPredictionTopology {
 			Double[] pTopScores = (Double[]) record.getField(2);
 			
 			if (partitionCount.containsKey(uid)) {
-				// we already have the user in the maps
+				// the user is in the maps
 				
 				updateTopItems(uid, pTopIds, pTopScores);
+				
 				Integer newCount = partitionCount.get(uid) - 1;
 
 				if (newCount > 0) {
+					// update partition count
 					partitionCount.put(uid, newCount);
 				} else {
-					outputRecord.setField(0, uid);
-					outputRecord.setField(1, topIDs.get(uid));
-					outputRecord.setField(2, topScores.get(uid));
-					emit(outputRecord);
-
-					partitionCount.remove(uid);
-					topIDs.remove(uid);
-					topScores.remove(uid);
+					// all the partitions are processed, we've got the global top now
+					// TODO emit it and remove the user from all the maps
 				}
 			} else {
+				// the user is not in the maps
+				
 				if (numberOfPartitions == 1) {
 					// if there's only one partition that has the global top scores
-					outputRecord.setField(0, uid);
-					outputRecord.setField(1, pTopIds);
-					outputRecord.setField(2, pTopScores);
-					emit(outputRecord);
+					// TODO emit it as the global top scores
 				} else {
 					// if there are more partitions the first one is the initial top scores
 					partitionCount.put(uid, numberOfPartitions - 1);
@@ -156,15 +150,7 @@ public class ALSPredictionTopology {
 			Double[] currentTopScores = topScores.get(uid);
 			Long[] currentTopIDs = topIDs.get(uid);
 
-			Util.merge(currentTopIDs, currentTopScores, pTopIDs, pTopScores);
-			
-			/*for (int i = 0; i < pTopScores.length; i++) {
-				if (!Arrays.asList(currentTopIDs).contains(pTopIDs[i])) {
-					for (int j = 0; j < currentTopScores.length; j++) {
-						// TODO update top items if needed
-					}
-				}
-			}*/
+			// TODO update top IDs by using Util.merge()
 		}
 	}
 
@@ -189,7 +175,7 @@ public class ALSPredictionTopology {
 		
 		graphBuilder.shuffleConnect("IDsource", "GetUserVectorTask");
 
-		// TODO connect the remaining components using  the right connection type
+		// TODO connect the remaining components using the right connection type
 
 		return graphBuilder.getJobGraph();
 	}
