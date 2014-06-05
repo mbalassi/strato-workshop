@@ -24,7 +24,6 @@ import eu.stratosphere.api.java.DataSet;
 import eu.stratosphere.api.java.tuple.Tuple3;
 import eu.stratosphere.api.java.tuple.Tuple2;
 
-
 //Parameters: [noSubStasks] [matrix] [output] [rank] [numberOfIterations] [lambda] 
 public class ALS {
 
