@@ -38,41 +38,41 @@ public class ALSPredictionTopology {
 	static class GetUserVectorTask extends UserTaskInvokable {
 		private static final long serialVersionUID = 1L;
 
+		// This array contains the user feature vectors
+		private double[][] userVectorMatrix = Util.getUserMatrix();
+
 		StreamRecord outputRecord = new StreamRecord(new Tuple2<Long, Double[]>());
 
 		@Override
 		public void invoke(StreamRecord record) throws Exception {
-			String[] uidVector = record.getString(0).split("#");
-			long uid = Long.parseLong(uidVector[0]);
-			
-			String[] vectorString = uidVector[1].split(",");
-			Double[] vector = new Double[vectorString.length];
+			String uidString = record.getString(0);
+			long uid = Long.parseLong(uidString);
 
-			// TODO fill vector
-
-			// TODO fill & emit outputRecord (uid, vector)
+			// TODO fill & emit outputRecord (uid, uservector)
 		}
 	}
 
 	public static class PartialTopItemsTask extends UserTaskInvokable {
 		private static final long serialVersionUID = 1L;
-		
+
+		private int numberOfPartitions;
 		private int topItemCount;
 
 		// array containing item feature vectors
-		double[][] partialItemFeature = new double[][] { { 0.1, 0.2, 1 }, { 0.3, 0.4, 1 },
-				{ 1., 1., 1 } };
+		double[][] partialItemFeature = Util.getItemMatrix(numberOfPartitions);
 
 		// global IDs of the Item partition
-		Long[] itemIDs = new Long[] { 1L, 10L, 11L }; 
-						  
+		Long[] itemIDs = Util.getItemIDs();
+
 		Double[] partialTopItemScores = new Double[topItemCount];
 		Long[] partialTopItemIDs = new Long[topItemCount];
 
-		// TODO create outputRecord object (uid, partialTopItemIDs, partialTopItemScores)
-		
-		public PartialTopItemsTask(int topItemCount) {
+		// TODO create outputRecord object (uid, partialTopItemIDs,
+		// partialTopItemScores)
+
+		public PartialTopItemsTask(int numberOfPartitions, int topItemCount) {
 			this.topItemCount = topItemCount;
+			this.numberOfPartitions = numberOfPartitions;
 		}
 
 		@Override
@@ -82,14 +82,16 @@ public class ALSPredictionTopology {
 
 			// TODO calculate scores for all items
 			for (int item = 0; item < itemIDs.length; item++) {
-				// TODO calculate scalar products of the item feature vectors and user vector
+				// TODO calculate scalar products of the item feature vectors
+				// and user vector
 			}
 
 			// TODO get the top TOP_ITEM_COUNT items for the partitions
 			// (fill partialTopItemIDs and partialTopItemScores)
 			// use Util.getTopK() method
-			
-			// TODO fill & emit outputRecord (uid, partialTopItemIDs, partialTopItemScores)
+
+			// TODO fill & emit outputRecord (uid, partialTopItemIDs,
+			// partialTopItemScores)
 		}
 
 	}
@@ -98,7 +100,7 @@ public class ALSPredictionTopology {
 		private static final long serialVersionUID = 1L;
 
 		private int numberOfPartitions;
-		
+
 		// mapping the user ID to the global top items of the user
 		// partitionCount counts down till the all the partitions are processed
 		Map<Long, Integer> partitionCount = new HashMap<Long, Integer>();
@@ -116,10 +118,10 @@ public class ALSPredictionTopology {
 			Long uid = record.getLong(0);
 			Long[] pTopIds = (Long[]) record.getField(1);
 			Double[] pTopScores = (Double[]) record.getField(2);
-			
+
 			if (partitionCount.containsKey(uid)) {
-				// the user is in the maps
-				
+				// we already have the user in the maps
+
 				updateTopItems(uid, pTopIds, pTopScores);
 				
 				Integer newCount = partitionCount.get(uid) - 1;
@@ -138,7 +140,8 @@ public class ALSPredictionTopology {
 					// if there's only one partition that has the global top scores
 					// TODO emit it as the global top scores
 				} else {
-					// if there are more partitions the first one is the initial top scores
+					// if there are more partitions the first one is the initial
+					// top scores
 					partitionCount.put(uid, numberOfPartitions - 1);
 					topIDs.put(uid, pTopIds);
 					topScores.put(uid, pTopScores);
@@ -165,14 +168,14 @@ public class ALSPredictionTopology {
 	}
 
 	public static JobGraph getJobGraph(int partitionCount, int topItemCount) {
-		
+
 		JobGraphBuilder graphBuilder = new JobGraphBuilder("ALS prediction");
-		
+
 		graphBuilder.setSource("IDsource", new RMQSource("localhost", "id-queue"), 1, 1);
 		graphBuilder.setTask("GetUserVectorTask", new GetUserVectorTask(), 1, 1);
-	
+
 		// TODO set the two remaining tasks and the sink
-		
+
 		graphBuilder.shuffleConnect("IDsource", "GetUserVectorTask");
 
 		// TODO connect the remaining components using the right connection type

@@ -14,6 +14,10 @@
  **********************************************************************************************************************/
 package hu.sztaki.stratosphere.workshop.utils;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 
 public class Util {
@@ -130,5 +134,92 @@ public class Util {
 			topIDs[i] = newTopIDs[i];
 			topValues[i] = newTopValues[i];
 		}
+	}
+
+	static int numOfPartitions;
+	static int currentPartition = 0;
+	static boolean read = false;
+	static List<double[][]> itemMatrix = new ArrayList<double[][]>();
+
+	public static double[][] getItemMatrix(int k) {
+		numOfPartitions = k;
+		if (!read) {
+			List<double[]> rows = new ArrayList<double[]>();
+			try {
+				BufferedReader br = new BufferedReader(new FileReader(
+						"src/main/resources/testdata/als_streaming/sampledb2/q"));
+				while (true) {
+					String line = br.readLine();
+					String[] nums;
+					if (line == null) {
+						break;
+					} else
+						nums = line.split("\\|");
+					double[] row = new double[nums.length - 1];
+					for (int i = 1; i <= row.length; i++) {
+						row[i - 1] = Double.parseDouble(nums[i]);
+					}
+					rows.add(row);
+
+				}
+				br.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println(rows.size());
+			for (int i = 0; i < k; i++) {
+				double[][] prows = new double[rows.size() / k][];
+				for (int j = 0; j < (rows.size() / k); j++) {
+					prows[j] = (rows.get((rows.size() / k) * i + j));
+				}
+				itemMatrix.add(prows);
+			}
+			// parse files
+			read = true;
+		}
+		double[][] rm = itemMatrix.get(currentPartition);
+		currentPartition++;
+		return rm;
+	}
+
+	public static double[][] getUserMatrix() {
+		List<double[]> rows = new ArrayList<double[]>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(
+					"src/main/resources/testdata/als_streaming/sampledb2/p"));
+			while (true) {
+				String line = br.readLine();
+				String[] nums;
+				if (line == null) {
+					break;
+				} else
+					nums = line.split("\\|");
+				double[] row = new double[nums.length - 1];
+				for (int i = 1; i <= row.length; i++) {
+					row[i - 1] = Double.parseDouble(nums[i]);
+				}
+				rows.add(row);
+
+			}
+			br.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		double[][] userMatrix = new double[rows.size()][];
+		for (int i = 0; i < rows.size(); i++) {
+			userMatrix[i] = rows.get(i);
+		}
+		return userMatrix;
+
+	}
+
+	public static Long[] getItemIDs() {
+		int len = itemMatrix.get(0).length;
+		Long[] ids = new Long[len];
+		for (int i = 0; i < len; i++) {
+			ids[i] = new Long((currentPartition - 1) * len + i);
+		}
+		return ids;
 	}
 }
