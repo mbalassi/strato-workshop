@@ -24,7 +24,6 @@ import eu.stratosphere.api.java.DataSet;
 import eu.stratosphere.api.java.tuple.Tuple3;
 import eu.stratosphere.api.java.tuple.Tuple2;
 
-//Parameters: [noSubStasks] [matrix] [output] [rank] [numberOfIterations] [lambda] 
 public class ALS {
 
   public static void executeALS(int numSubTasks, String matrixInput, String output, int k,
@@ -93,11 +92,10 @@ public class ALS {
   }
 
   public static void main(String[] args) throws Exception {
-    String sampleDB1 = ALS.class.getResource("/testdata/als_batch/sampledb1.csv").getPath();
     String sampleDB2 = ALS.class.getResource("/testdata/als_batch/sampledb2.csv").getPath();
     String sampleDB3 = ALS.class.getResource("/testdata/als_batch/sampledb3.csv").getPath();
 
     // Parrameters: numSubtasks, matrixInput, output, k, numIterations, lambda
-    executeALS(2, sampleDB1, "als_batch", 5, 3, 0.1);
+    executeALS(2, sampleDB2, "als_batch", 5, 3, 0.1);
   }
 }
