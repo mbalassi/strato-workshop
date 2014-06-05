@@ -23,15 +23,15 @@ import java.util.TreeSet;
 public class Util {
 
 	private static class Item implements Comparable<Item> {
-		private Long id;
+		private Integer id;
 		private Double value;
 
-		public Item(Long id, Double value) {
+		public Item(Integer id, Double value) {
 			this.id = id;
 			this.value = value;
 		}
 
-		public Long getId() {
+		public Integer getId() {
 			return id;
 		}
 
@@ -60,7 +60,7 @@ public class Util {
 	 * @param values
 	 *            values array to get the largest values from
 	 */
-	public static void getTopK(int k, Long[] topIDs, Double[] topValues, Long[] ids, Double[] values) {
+	public static void getTopK(int k, Integer[] topIDs, Double[] topValues, Integer[] ids, Double[] values) {
 		if (k > ids.length) {
 			k = ids.length;
 		}
@@ -99,7 +99,7 @@ public class Util {
 	 * @param otherValues
 	 *            array to merge topValues with
 	 */
-	public static void merge(Long[] topIDs, Double[] topValues, Long[] otherIDs,
+	public static void merge(Integer[] topIDs, Double[] topValues, Integer[] otherIDs,
 			Double[] otherValues) {
 
 		int ind = 0;
@@ -107,7 +107,7 @@ public class Util {
 		int otherIndex = 0;
 
 		int k = topValues.length;
-		Long[] newTopIDs = new Long[k];
+		Integer[] newTopIDs = new Integer[k];
 		Double[] newTopValues = new Double[k];
 
 		while (ind < k && oneIndex < topValues.length && otherIndex < otherValues.length) {
@@ -166,24 +166,26 @@ public class Util {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			System.out.println(rows.size());
+
 			for (int i = 0; i < k; i++) {
 				double[][] prows = new double[rows.size() / k][];
 				for (int j = 0; j < (rows.size() / k); j++) {
 					prows[j] = (rows.get((rows.size() / k) * i + j));
 				}
 				itemMatrix.add(prows);
+
 			}
 			// parse files
 			read = true;
+
 		}
 		double[][] rm = itemMatrix.get(currentPartition);
 		currentPartition++;
 		return rm;
 	}
 
-	public static double[][] getUserMatrix() {
-		List<double[]> rows = new ArrayList<double[]>();
+	public static Double[][] getUserMatrix() {
+		List<Double[]> rows = new ArrayList<Double[]>();
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(
 					"src/main/resources/testdata/als_streaming/sampledb2/p"));
@@ -194,7 +196,7 @@ public class Util {
 					break;
 				} else
 					nums = line.split("\\|");
-				double[] row = new double[nums.length - 1];
+				Double[] row = new Double[nums.length - 1];
 				for (int i = 1; i <= row.length; i++) {
 					row[i - 1] = Double.parseDouble(nums[i]);
 				}
@@ -206,7 +208,7 @@ public class Util {
 			e.printStackTrace();
 		}
 
-		double[][] userMatrix = new double[rows.size()][];
+		Double[][] userMatrix = new Double[rows.size()][];
 		for (int i = 0; i < rows.size(); i++) {
 			userMatrix[i] = rows.get(i);
 		}
@@ -214,11 +216,11 @@ public class Util {
 
 	}
 
-	public static Long[] getItemIDs() {
+	public static Integer[] getItemIDs() {
 		int len = itemMatrix.get(0).length;
-		Long[] ids = new Long[len];
+		Integer[] ids = new Integer[len];
 		for (int i = 0; i < len; i++) {
-			ids[i] = new Long((currentPartition - 1) * len + i);
+			ids[i] = new Integer((currentPartition - 1) * len + i);
 		}
 		return ids;
 	}
