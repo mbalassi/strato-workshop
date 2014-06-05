@@ -64,8 +64,8 @@ public class ALSPredictionTopology {
 		// global IDs of the Item partition
 		Long[] itemIDs;
 
-		Double[] partialTopItemScores = new Double[topItemCount];
-		Long[] partialTopItemIDs = new Long[topItemCount];
+		Double[] partialTopItemScores;
+		Long[] partialTopItemIDs;
 
 		// TODO create outputRecord object (uid, partialTopItemIDs,
 		// partialTopItemScores)
@@ -75,6 +75,8 @@ public class ALSPredictionTopology {
 			this.numberOfPartitions = numberOfPartitions;
 			partialItemFeature = Util.getItemMatrix(numberOfPartitions);
 			itemIDs = Util.getItemIDs();
+			partialTopItemScores = new Double[topItemCount];
+			partialTopItemIDs = new Long[topItemCount];
 		}
 
 		@Override
