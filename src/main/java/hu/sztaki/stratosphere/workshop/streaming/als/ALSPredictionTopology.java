@@ -39,19 +39,17 @@ public class ALSPredictionTopology {
 	static class GetUserVectorTask extends UserTaskInvokable {
 		private static final long serialVersionUID = 1L;
 
+		// This array contains the user feature vectors
+		private double[][] userVectorMatrix = Util.getUserMatrix();
+
 		StreamRecord outputRecord = new StreamRecord(new Tuple2<Long, Double[]>());
 
 		@Override
 		public void invoke(StreamRecord record) throws Exception {
-			String[] uidVector = record.getString(0).split("#");
-			long uid = Long.parseLong(uidVector[0]);
+			String uidString = record.getString(0);
+			long uid = Long.parseLong(uidString);
 
-			String[] vectorString = uidVector[1].split(",");
-			Double[] vector = new Double[vectorString.length];
-
-			// TODO fill vector
-
-			// TODO fill & emit outputRecord (uid, vector)
+			// TODO fill & emit outputRecord (uid, uservector)
 		}
 	}
 
@@ -65,7 +63,7 @@ public class ALSPredictionTopology {
 		double[][] partialItemFeature = Util.getItemMatrix(numberOfPartitions);
 
 		// global IDs of the Item partition
-		Long[] itemIDs = new Long[] { 1L, 10L, 11L };
+		Long[] itemIDs = Util.getItemIDs();
 
 		Double[] partialTopItemScores = new Double[topItemCount];
 		Long[] partialTopItemIDs = new Long[topItemCount];
