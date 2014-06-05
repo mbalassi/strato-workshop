@@ -97,7 +97,7 @@ public class ALS {
     String sampleDB2 = ALS.class.getResource("/testdata/als_batch/sampledb2.csv").getPath();
     String sampleDB3 = ALS.class.getResource("/testdata/als_batch/sampledb3.csv").getPath();
 
-    // numSubtasks, matrixInput, output, k, numIterations, lambda
-    executeALS(2, sampleDB1, "als_output", 5, 3, 0.1);
+    // Parrameters: numSubtasks, matrixInput, output, k, numIterations, lambda
+    executeALS(2, sampleDB1, "als_batch", 5, 3, 0.1);
   }
 }
