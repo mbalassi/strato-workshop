@@ -15,10 +15,7 @@
 
 package hu.sztaki.stratosphere.workshop.batch.als;
 
-import java.util.Collection;
-import java.util.Iterator;
 
-import eu.stratosphere.configuration.Configuration;
 import eu.stratosphere.api.java.functions.JoinFunction;
 import eu.stratosphere.api.java.tuple.Tuple2;
 import eu.stratosphere.api.java.tuple.Tuple3;

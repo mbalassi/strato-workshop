@@ -15,7 +15,6 @@
 
 package hu.sztaki.stratosphere.workshop.batch.als;
 
-import java.util.Collection;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -45,6 +44,11 @@ public class PIteration extends CoGroupFunction<Tuple3<Integer,Integer,Double>,T
       Collector<Tuple2<Integer,double[]>> out) {
     double[][] matrix = new double[k][k];
     double[][] vector = new double[k][1];
+
+    //Don't do anything if q is empty
+    if(!q.hasNext()){
+      return;
+    }
     
     double element_ = lambda; //Regularization with Frobenius-norm 
      
