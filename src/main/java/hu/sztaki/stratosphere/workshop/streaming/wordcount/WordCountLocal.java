@@ -19,9 +19,6 @@ import org.apache.log4j.Level;
 
 import eu.stratosphere.nephele.jobgraph.JobGraph;
 import eu.stratosphere.streaming.api.JobGraphBuilder;
-import eu.stratosphere.streaming.examples.wordcount.WordCountCounter;
-import eu.stratosphere.streaming.examples.wordcount.WordCountSink;
-import eu.stratosphere.streaming.examples.wordcount.WordCountSourceSplitter;
 import eu.stratosphere.streaming.faulttolerance.FaultToleranceType;
 import eu.stratosphere.streaming.util.ClusterUtil;
 import eu.stratosphere.streaming.util.LogUtils;

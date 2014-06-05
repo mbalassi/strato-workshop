@@ -15,6 +15,8 @@
 
 package hu.sztaki.stratosphere.workshop.streaming.als;
 
+import hu.sztaki.stratosphere.workshop.utils.Util;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +30,6 @@ import eu.stratosphere.streaming.api.JobGraphBuilder;
 import eu.stratosphere.streaming.api.invokable.UserSinkInvokable;
 import eu.stratosphere.streaming.api.invokable.UserTaskInvokable;
 import eu.stratosphere.streaming.api.streamrecord.StreamRecord;
-import eu.stratosphere.streaming.faulttolerance.FaultToleranceType;
 import eu.stratosphere.streaming.rabbitmq.RMQSource;
 import eu.stratosphere.streaming.util.ClusterUtil;
 import eu.stratosphere.streaming.util.LogUtils;
@@ -44,32 +45,33 @@ public class ALSPredictionTopology {
 		public void invoke(StreamRecord record) throws Exception {
 			String[] uidVector = record.getString(0).split("#");
 			long uid = Long.parseLong(uidVector[0]);
+			
 			String[] vectorString = uidVector[1].split(",");
-
 			Double[] vector = new Double[vectorString.length];
 
 			// TODO fill vector
 
-			// TODO fill & emit outputRecord
+			// TODO fill & emit outputRecord (uid, vector)
 		}
 	}
 
 	public static class PartialTopItemsTask extends UserTaskInvokable {
 		private static final long serialVersionUID = 1L;
-
-		StreamRecord outputRecord = new StreamRecord(new Tuple3<Long, Long[], Double[]>());
-
-		// TODO: generate partial item feature matrix from the database
-		double[][] partialItemFeature = new double[][] { { 0.1, 0.2, 1 }, { 0.3, 0.4, 1 },
-				{ 1., 1., 1 } };
+		
 		private int topItemCount;
 
-		Long[] itemIDs = new Long[] { 1L, 10L, 11L }; // Global IDs of the Item
-														// partition
+		// array containing item feature vectors
+		double[][] partialItemFeature = new double[][] { { 0.1, 0.2, 1 }, { 0.3, 0.4, 1 },
+				{ 1., 1., 1 } };
 
+		// global IDs of the Item partition
+		Long[] itemIDs = new Long[] { 1L, 10L, 11L }; 
+						  
 		Double[] partialTopItemScores = new Double[topItemCount];
 		Long[] partialTopItemIDs = new Long[topItemCount];
 
+		// TODO create outputRecord object (uid, partialTopItemIDs, partialTopItemScores)
+		
 		public PartialTopItemsTask(int topItemCount) {
 			this.topItemCount = topItemCount;
 		}
@@ -79,23 +81,16 @@ public class ALSPredictionTopology {
 			Double[] userVector = (Double[]) record.getField(1);
 			Double[] scores = new Double[itemIDs.length];
 
-			// calculate scores for all items
+			// TODO calculate scores for all items
 			for (int item = 0; item < itemIDs.length; item++) {
-
-				// TODO calculate scores for all items
-
+				// TODO calculate scalar products of the item feature vectors and user vector
 			}
 
-			// get the top TOP_ITEM_COUNT items for the partitions
-			partialTopItemIDs = Arrays.copyOfRange(itemIDs, 0, topItemCount);
-			partialTopItemScores = Arrays.copyOfRange(scores, 0, topItemCount);
-
-			// TODO fill partialTopItemIDs and partialTopItemScores
-
-			outputRecord.setField(0, record.getField(0));
-			outputRecord.setField(1, partialTopItemIDs);
-			outputRecord.setField(2, partialTopItemScores);
-			emit(outputRecord);
+			// TODO get the top TOP_ITEM_COUNT items for the partitions
+			// (fill partialTopItemIDs and partialTopItemScores)
+			// use Util.getTopK() method
+			
+			// TODO fill & emit outputRecord (uid, partialTopItemIDs, partialTopItemScores)
 		}
 
 	}
@@ -104,6 +99,9 @@ public class ALSPredictionTopology {
 		private static final long serialVersionUID = 1L;
 
 		private int numberOfPartitions;
+		
+		// mapping the user ID to the global top items of the user
+		// partitionCount counts down till the all the partitions are processed
 		Map<Long, Integer> partitionCount = new HashMap<Long, Integer>();
 		Map<Long, Long[]> topIDs = new HashMap<Long, Long[]>();
 		Map<Long, Double[]> topScores = new HashMap<Long, Double[]>();
@@ -119,9 +117,10 @@ public class ALSPredictionTopology {
 			Long uid = record.getLong(0);
 			Long[] pTopIds = (Long[]) record.getField(1);
 			Double[] pTopScores = (Double[]) record.getField(2);
-
+			
 			if (partitionCount.containsKey(uid)) {
-
+				// we already have the user in the maps
+				
 				updateTopItems(uid, pTopIds, pTopScores);
 				Integer newCount = partitionCount.get(uid) - 1;
 
@@ -139,11 +138,13 @@ public class ALSPredictionTopology {
 				}
 			} else {
 				if (numberOfPartitions == 1) {
+					// if there's only one partition that has the global top scores
 					outputRecord.setField(0, uid);
 					outputRecord.setField(1, pTopIds);
 					outputRecord.setField(2, pTopScores);
 					emit(outputRecord);
 				} else {
+					// if there are more partitions the first one is the initial top scores
 					partitionCount.put(uid, numberOfPartitions - 1);
 					topIDs.put(uid, pTopIds);
 					topScores.put(uid, pTopScores);
@@ -155,15 +156,15 @@ public class ALSPredictionTopology {
 			Double[] currentTopScores = topScores.get(uid);
 			Long[] currentTopIDs = topIDs.get(uid);
 
-			for (int i = 0; i < pTopScores.length; i++) {
+			Util.merge(currentTopIDs, currentTopScores, pTopIDs, pTopScores);
+			
+			/*for (int i = 0; i < pTopScores.length; i++) {
 				if (!Arrays.asList(currentTopIDs).contains(pTopIDs[i])) {
 					for (int j = 0; j < currentTopScores.length; j++) {
-
 						// TODO update top items if needed
-
 					}
 				}
-			}
+			}*/
 		}
 	}
 
@@ -178,28 +179,23 @@ public class ALSPredictionTopology {
 	}
 
 	public static JobGraph getJobGraph(int partitionCount, int topItemCount) {
-
+		
 		JobGraphBuilder graphBuilder = new JobGraphBuilder("ALS prediction");
-
+		
 		graphBuilder.setSource("IDsource", new RMQSource("localhost", "id-queue"), 1, 1);
 		graphBuilder.setTask("GetUserVectorTask", new GetUserVectorTask(), 1, 1);
-		graphBuilder.setTask("PartialTopItemsTask", new PartialTopItemsTask(topItemCount),
-				partitionCount, partitionCount);
-		graphBuilder.setTask("TopItemsTask", new TopItemsTask(partitionCount), 1, 1);
-		graphBuilder.setSink("TopItemsProcessorSink", new TopItemsProcessorSink(), 1, 1);
-
+	
+		// TODO set the two remaining tasks and the sink
+		
 		graphBuilder.shuffleConnect("IDsource", "GetUserVectorTask");
-		graphBuilder.broadcastConnect("GetUserVectorTask", "PartialTopItemsTask");
-		graphBuilder.fieldsConnect("PartialTopItemsTask", "TopItemsTask", 0);
-		graphBuilder.shuffleConnect("TopItemsTask", "TopItemsProcessorSink");
+
+		// TODO connect the remaining components using  the right connection type
 
 		return graphBuilder.getJobGraph();
 	}
 
 	public static void main(String[] arg) {
 		LogUtils.initializeDefaultConsoleLogger(Level.DEBUG, Level.INFO);
-
 		ClusterUtil.runOnMiniCluster(getJobGraph(2, 2));
 	}
-
 }

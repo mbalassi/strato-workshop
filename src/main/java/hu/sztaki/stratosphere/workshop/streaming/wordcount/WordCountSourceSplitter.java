@@ -28,10 +28,15 @@ public class WordCountSourceSplitter extends UserSourceInvokable {
 	private BufferedReader br = null;
 	private String line = new String();
 	private StreamRecord outRecord = new StreamRecord(new Tuple1<String>());
-
+	private String fileName;
+	
+	public WordCountSourceSplitter(String fileName) {
+		this.fileName = fileName;
+	}
+	
 	@Override
 	public void invoke() throws Exception {
-		br = new BufferedReader(new FileReader("src/test/resources/testdata/hamlet.txt"));
+		br = new BufferedReader(new FileReader(fileName));
 		while (true) {
 			line = br.readLine();
 			if (line == null) {

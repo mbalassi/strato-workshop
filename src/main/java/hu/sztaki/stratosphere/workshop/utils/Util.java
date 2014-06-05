@@ -1,3 +1,17 @@
+/***********************************************************************************************************************
+ *
+ * Copyright (C) 2010-2014 by the Stratosphere project (http://stratosphere.eu)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ **********************************************************************************************************************/
 package hu.sztaki.stratosphere.workshop.utils;
 
 import java.util.TreeSet;
@@ -69,15 +83,17 @@ public class Util {
 	}
 
 	/**
-	 * Merges two ordered array pairs and puts them into topIDs and topValues arrays
+	 * Merges two ordered array pairs and puts them into topIDs and topValues
+	 * arrays
+	 * 
 	 * @param topIDs
-	 * result ID array
+	 *            result ID array
 	 * @param topValues
-	 * result values array
+	 *            result values array
 	 * @param otherIDs
-	 * array to merge topIDs with
+	 *            array to merge topIDs with
 	 * @param otherValues
-	 * array to merge topValues with
+	 *            array to merge topValues with
 	 */
 	public static void merge(Long[] topIDs, Double[] topValues, Long[] otherIDs,
 			Double[] otherValues) {
