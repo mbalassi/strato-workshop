@@ -83,7 +83,7 @@ public class BasicTopology {
 	public static void main(String[] args) {
 
 		// set logging parameters for local run
-		LogUtils.initializeDefaultConsoleLogger(Level.INFO, Level.INFO);
+		LogUtils.initializeDefaultConsoleLogger(Level.ERROR, Level.ERROR);
 
 		ClusterUtil.runOnMiniCluster(getJobGraph());
 

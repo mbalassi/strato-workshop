@@ -15,70 +15,72 @@
 
 package hu.sztaki.stratosphere.workshop.batch.als;
 
+import eu.stratosphere.api.java.IterativeDataSet;
 import hu.sztaki.stratosphere.workshop.batch.outputformat.ColumnOutputFormat;
 
 import eu.stratosphere.api.java.operators.DataSink;
 import eu.stratosphere.api.java.ExecutionEnvironment;
 import eu.stratosphere.api.java.DataSet;
-import eu.stratosphere.api.java.functions.KeySelector;
 import eu.stratosphere.api.java.tuple.Tuple3;
 import eu.stratosphere.api.java.tuple.Tuple2;
-import eu.stratosphere.api.java.tuple.Tuple5;
+
 
 //Parameters: [noSubStasks] [matrix] [output] [rank] [numberOfIterations] [lambda] 
 public class ALS {
 
-  public static void main(String[] args) throws Exception {	
-    
+  public static void executeALS(int numSubTasks, String matrixInput, String output, int k,
+                                int numIterations, double lambda) throws Exception{
     final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
-    // parse job parameters
-    int noSubTasks = (args.length > 0 ? Integer.parseInt(args[0]) : 1);
-    String matrixInput = (args.length > 1 ? args[1] : "");
-    String output = (args.length > 2 ? args[2] : "");
-    int k = (args.length > 3 ? Integer.parseInt(args[3]) : 1);
-    int iteration = (args.length > 4 ? Integer.parseInt(args[4]) : 1);
-    double lambda = (args.length > 5 ? Double.parseDouble(args[5]) : 0.0);
-    
     //input rating matrix
     DataSet<Tuple3<Integer,Integer,Double>> matrixSource = env.readCsvFile(matrixInput)
-	   .fieldDelimiter('|')
-	   .lineDelimiter("|\n")
-	   .includeFields(true, true, true)
-	   .types(Integer.class,Integer.class,Double.class); 
-    
-    //for random q matrix as input    
+            .fieldDelimiter('|')
+            .lineDelimiter("|\n")
+            .includeFields(true, true, true)
+            .types(Integer.class,Integer.class,Double.class);
+
+    //for random q matrix as input
     DataSet<Tuple2<Integer,double[]>> q = matrixSource
-      .groupBy(1)
-      .reduceGroup(new RandomMatrix(k))    
-      .name("Create q as a random matrix");
-   
-    DataSet<Tuple2<Integer,double[]>> p = null;
+            .groupBy(1)
+            .reduceGroup(new RandomMatrix(k))
+            .name("Create q as a random matrix");
 
-    //iteration
-    for (int i = 0; i < iteration; ++i) {
-      DataSet<Tuple3<Integer,Integer,double[]>> multipliedQ = matrixSource.join(q)
-	   .where(1).equalTo(0)
-           .with( new MultiplyVector())
-           .name("Sends the columns of q with multiple keys)");
-      
-      p = matrixSource.coGroup(multipliedQ)
-	   .where(0).equalTo(0)
-	   .with( new PIteration(k,lambda))
-           .name("For fixed q calculates optimal p");
-      
-      DataSet<Tuple3<Integer,Integer, double[]>> multipliedP = matrixSource.join(p)
-	   .where(0).equalTo(0)
-	   .with( new MultiplyVector())
-           .name("Sends the rows of p with multiple keys)");
- 
-      q = matrixSource.coGroup(multipliedP)
-	   .where(1).equalTo(1)
-	   .with( new QIteration(k,lambda))
-           .name("For fixed p calculates optimal q");    
+    IterativeDataSet<Tuple2<Integer, double[]>> initialQ = q.iterate(numIterations);
 
-    }
-    
+    DataSet<Tuple3<Integer, Integer, double[]>> multipliedQ = matrixSource.join(initialQ)
+            .where(1)
+            .equalTo(0)
+            .with(new MultiplyVector())
+            .name("Sends the columns of q with multiple keys");
+
+    DataSet<Tuple2<Integer,double[]>> p = matrixSource.coGroup(multipliedQ)
+            .where(0).equalTo(0)
+            .with( new PIteration(k,lambda))
+            .name("For fixed q calculates optimal p");
+
+    DataSet<Tuple3<Integer,Integer, double[]>> multipliedP = matrixSource.join(p)
+            .where(0).equalTo(0)
+            .with( new MultiplyVector())
+            .name("Sends the rows of p with multiple keys)");
+
+    DataSet<Tuple2<Integer, double[]>> nextQ = matrixSource.coGroup(multipliedP)
+            .where(1).equalTo(1)
+            .with( new QIteration(k,lambda))
+            .name("For fixed p calculates optimal q");
+
+    q = initialQ.closeWith(nextQ);
+
+    multipliedQ = matrixSource.join(q)
+            .where(1)
+            .equalTo(0)
+            .with(new MultiplyVector())
+            .name("Sends the columns of q with multiple keys");
+
+    p = matrixSource.coGroup(multipliedQ)
+            .where(0).equalTo(0)
+            .with( new PIteration(k,lambda))
+            .name("For fixed q calculates optimal p");
+
     //output:
     ColumnOutputFormat pFormat = new ColumnOutputFormat(output + "/p");
     DataSink<Tuple2<Integer,double[]>> pOut = p.output(pFormat);
@@ -86,9 +88,17 @@ public class ALS {
     ColumnOutputFormat qFormat = new ColumnOutputFormat(output + "/q");
     DataSink<Tuple2<Integer,double[]>> qOut = q.output(qFormat);
 
-    env.setDegreeOfParallelism(noSubTasks);
-    
+    env.setDegreeOfParallelism(numSubTasks);
+
     env.execute("ALS");
   }
 
+  public static void main(String[] args) throws Exception {
+    String sampleDB1 = ALS.class.getResource("/testdata/als_batch/sampledb1.csv").getPath();
+    String sampleDB2 = ALS.class.getResource("/testdata/als_batch/sampledb2.csv").getPath();
+    String sampleDB3 = ALS.class.getResource("/testdata/als_batch/sampledb3.csv").getPath();
+
+    // numSubtasks, matrixInput, output, k, numIterations, lambda
+    executeALS(2, sampleDB1, "als_output", 5, 3, 0.1);
+  }
 }
