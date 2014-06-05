@@ -15,8 +15,6 @@
 
 package hu.sztaki.stratosphere.workshop.RMQ;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Random;
 
 import com.rabbitmq.client.Channel;

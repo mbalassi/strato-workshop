@@ -59,10 +59,10 @@ public class ALSPredictionTopology {
 		private int topItemCount;
 
 		// array containing item feature vectors
-		double[][] partialItemFeature = Util.getItemMatrix(numberOfPartitions);
+		double[][] partialItemFeature;
 
 		// global IDs of the Item partition
-		Long[] itemIDs = Util.getItemIDs();
+		Long[] itemIDs;
 
 		Double[] partialTopItemScores = new Double[topItemCount];
 		Long[] partialTopItemIDs = new Long[topItemCount];
@@ -73,6 +73,8 @@ public class ALSPredictionTopology {
 		public PartialTopItemsTask(int numberOfPartitions, int topItemCount) {
 			this.topItemCount = topItemCount;
 			this.numberOfPartitions = numberOfPartitions;
+			partialItemFeature = Util.getItemMatrix(numberOfPartitions);
+			itemIDs = Util.getItemIDs();
 		}
 
 		@Override
@@ -107,7 +109,8 @@ public class ALSPredictionTopology {
 		Map<Long, Long[]> topIDs = new HashMap<Long, Long[]>();
 		Map<Long, Double[]> topScores = new HashMap<Long, Double[]>();
 
-		// TODO create a StreamRecord object for sending the results (uid, item IDs, global top scores)
+		// TODO create a StreamRecord object for sending the results (uid, item
+		// IDs, global top scores)
 
 		public TopItemsTask(int numberOfPartitions) {
 			this.numberOfPartitions = numberOfPartitions;
@@ -123,21 +126,23 @@ public class ALSPredictionTopology {
 				// we already have the user in the maps
 
 				updateTopItems(uid, pTopIds, pTopScores);
-				
+
 				Integer newCount = partitionCount.get(uid) - 1;
 
 				if (newCount > 0) {
 					// update partition count
 					partitionCount.put(uid, newCount);
 				} else {
-					// all the partitions are processed, we've got the global top now
+					// all the partitions are processed, we've got the global
+					// top now
 					// TODO emit it and remove the user from all the maps
 				}
 			} else {
 				// the user is not in the maps
-				
+
 				if (numberOfPartitions == 1) {
-					// if there's only one partition that has the global top scores
+					// if there's only one partition that has the global top
+					// scores
 					// TODO emit it as the global top scores
 				} else {
 					// if there are more partitions the first one is the initial
@@ -173,6 +178,7 @@ public class ALSPredictionTopology {
 
 		graphBuilder.setSource("IDsource", new RMQSource("localhost", "id-queue"), 1, 1);
 		graphBuilder.setTask("GetUserVectorTask", new GetUserVectorTask(), 1, 1);
+		graphBuilder.setTask("asd", new PartialTopItemsTask(3, 5));
 
 		// TODO set the two remaining tasks and the sink
 
