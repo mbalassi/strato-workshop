@@ -15,6 +15,7 @@
 
 package hu.sztaki.stratosphere.workshop.batch.customals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,7 +26,6 @@ import Jama.Matrix;
 import eu.stratosphere.api.java.functions.CoGroupFunction;
 import eu.stratosphere.api.java.tuple.Tuple2;
 import eu.stratosphere.util.Collector;
-import eu.stratosphere.api.java.tuple.Tuple5;
 
 public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition<MatrixLine>, Partition<MatrixLine>> {
 
@@ -49,19 +49,18 @@ public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition
 				new HashMap<Integer, List<Tuple2<Integer, Double>>>();
 		Map<Integer, double[]> vectors = new HashMap<Integer, double[]>();
 
-		while (entries.hasNext()) {
-			Partition<MatrixEntry> partitionEntry = entries.next();
-			boolean isMatrix = record.f1;
-			//we sort our data according to whether it corresponds to an element of the rating matrix or a column of P or Q
-			if (isMatrix) {
-				addToMatrixMap(matrixElements, record);
-			} else {
-				addToVectorMap(vectors, record);
-			}
+		if(!lines.hasNext()){
+			return;
 		}
 
-		if(vectors.isEmpty()){
-			return;
+		while (entries.hasNext()) {
+			MatrixEntry entry = entries.next().f1;
+			addToMatrixMap(matrixElements, entry);
+		}
+
+		while(lines.hasNext()){
+			MatrixLine line = lines.next().f1;
+			addToVectorMap(vectors, line);
 		}
 
 		for (int recordIndex : matrixElements.keySet()) {
@@ -72,15 +71,18 @@ public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition
 		}
 	}
 
-	private void writeOutput(Matrix p, int recordIndex, Collector<Tuple5<Integer,Boolean,Integer,Integer,double[]>> out) {
+	private void writeOutput(Matrix p, int recordIndex, Collector<Partition<MatrixLine>> out) {
 
 		double[] output_elements = new double[k];
 		for (int i = 0; i < k; ++i) {
 			output_elements[i] = p.get(i, 0);
 		}
 
-		//TODO: set the element of the output vector and collect it with all machineIDs
-		//Hint: the output has the following format: (machineID,FALSE,recordIndex,ZERO,output_elements)
+		for (int i = 0; i < numOfTasks; ++i) {//send new vector for all machines
+			Partition<MatrixLine> output = new Partition<MatrixLine>(i, new MatrixLine(recordIndex, output_elements));
+			out.collect(output);
+		}
+
 
 	}
 
@@ -126,23 +128,23 @@ public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition
 	}
 
 	private void addToVectorMap(Map<Integer, double[]> vectors,
-								Partition<MatrixLine> line) {
-		//TODO: add the given vector's element to the map
-		//Hint: the map contains (columnID, vectorOfTheElements) pairs
-
+								MatrixLine line) {
+		vectors.put(line.getIndex(), line.getValues());
 	}
 
-	private void addToMatrixMap(Map<Integer, List<MatrixEntry>> map, Partition<MatrixLine> linePartition) throws
+	private void addToMatrixMap(Map<Integer, List<Tuple2<Integer, Double>>> map, MatrixEntry entry) throws
 			Exception {
-		int ownIndex = linePartition.f0;
-		int recordIndex = linePartition.getField(2 + idx);//if idx==0 then we update P given the columns of Q
-		int otherIndex = linePartition.getField(3 - idx);//if idx==1 then we update Q given the rows of P
-		double[] elements = linePartition.f4;
-		double value = elements[0];
+		int recordIndex = entry.getField(idx);
+		int otherIndex = entry.getField(1-idx);
+		double value = entry.getEntry();
 
-		//Hint: each IntDoublePair is a (otherIndex,value) pair. A List of these object corresponds to each vector which marked for update and has the recordIndex identifier.
-		//TODO: store the incoming record's fields in the given map, but make sure there is no duplication of the data
-
-
+		if (map.containsKey(recordIndex)) {
+			List<Tuple2<Integer, Double>> list = map.get(recordIndex);
+			list.add(new Tuple2<Integer, Double>(otherIndex, value));
+		} else {
+			List<Tuple2<Integer, Double>> list = new ArrayList<Tuple2<Integer, Double>>();
+			list.add(new Tuple2<Integer, Double>(otherIndex, value));
+			map.put(recordIndex, list);
+		}
 	}
 }

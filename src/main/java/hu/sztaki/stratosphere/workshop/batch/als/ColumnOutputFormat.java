@@ -13,23 +13,22 @@
  *
  **********************************************************************************************************************/
 
-package hu.sztaki.stratosphere.workshop.batch.outputformat;
+package hu.sztaki.stratosphere.workshop.batch.als;
+
+import eu.stratosphere.api.common.InvalidProgramException;
+import eu.stratosphere.api.common.io.FileOutputFormat;
+import eu.stratosphere.api.java.tuple.Tuple2;
+import eu.stratosphere.api.java.typeutils.InputTypeConfigurable;
+import eu.stratosphere.core.fs.Path;
+import eu.stratosphere.types.TypeInformation;
+import hu.sztaki.stratosphere.workshop.batch.customals.MatrixLine;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import eu.stratosphere.api.common.InvalidProgramException;
-import eu.stratosphere.api.common.io.FileOutputFormat;
-import eu.stratosphere.api.java.tuple.Tuple;
-import eu.stratosphere.api.java.typeutils.InputTypeConfigurable;
-import eu.stratosphere.types.TypeInformation;
-import eu.stratosphere.core.fs.Path;
-import eu.stratosphere.api.java.tuple.Tuple2;
-import hu.sztaki.stratosphere.workshop.batch.customals.MatrixLine;
-
-public class ColumnOutputFormat extends FileOutputFormat<MatrixLine> implements InputTypeConfigurable {
+public class ColumnOutputFormat extends FileOutputFormat<Tuple2<Integer,double[]>> implements InputTypeConfigurable {
 
   private static final long serialVersionUID = 1L;
       
@@ -64,7 +63,7 @@ public class ColumnOutputFormat extends FileOutputFormat<MatrixLine> implements 
   }
  
   @Override 
-  public void writeRecord(MatrixLine line) throws IOException {
+  public void writeRecord(Tuple2<Integer,double[]> line) throws IOException {
     if(line == null) {
       throw new NullPointerException("Record cannot be null!");
     } else {
