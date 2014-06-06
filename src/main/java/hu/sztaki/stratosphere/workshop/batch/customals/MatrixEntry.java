@@ -15,26 +15,20 @@
 
 package hu.sztaki.stratosphere.workshop.batch.customals;
 
-import eu.stratosphere.api.java.functions.MapFunction;
-import eu.stratosphere.api.java.tuple.Tuple5;
+import eu.stratosphere.api.java.tuple.Tuple3;
 
-public class MultiplyMatrix extends MapFunction<MatrixEntry ,Partition<MatrixEntry>> {
-
-	private int numOfTasks;
-	private int index;
-
-	public MultiplyMatrix(int numTask, int index) {
-		this.numOfTasks = numTask;
-		this.index = index;
+public class MatrixEntry extends Tuple3<Integer, Integer, Double> {
+	public MatrixEntry(){
+		super();
 	}
 
-	@Override
-	public Partition<MatrixEntry> map(MatrixEntry record) throws Exception {
-		int ownIndex = record.getField(index);//when ==0 then we do rowwise partition, when ==1 we do a columnwise partition
-		//TODO: assign each element of the (sparse) rating matrix uniformly to a machine
-		//TODO: the output vector has the (machinceIndex, TRUE, rowID, columnID, double[1]{elementValue}) format
-
-		return null;
+	public MatrixEntry(int rowIndex, int columnIndex, double value){
+		super(rowIndex, columnIndex, value);
 	}
 
+	public int getRowIndex() { return f0; }
+
+	public int getColumnIndex() { return f1; }
+
+	public double getEntry() { return f2; }
 }

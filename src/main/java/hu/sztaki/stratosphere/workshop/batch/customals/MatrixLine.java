@@ -15,34 +15,18 @@
 
 package hu.sztaki.stratosphere.workshop.batch.customals;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import eu.stratosphere.util.Collector;
-import eu.stratosphere.api.java.functions.GroupReduceFunction;
 import eu.stratosphere.api.java.tuple.Tuple2;
 
-public class OutputFormatter extends GroupReduceFunction<Partition<MatrixLine>, MatrixLine> {
+public class MatrixLine extends Tuple2<Integer, double[]> {
+	public MatrixLine(){
+		super();
+	}
 
-  private int numOfTasks;
-  private Tuple2<Integer,double[]> output = new Tuple2();
-  private Set<Integer> ids_ = new HashSet<Integer>(); 
-  
-  public OutputFormatter(int numTaks) {
-    this.numOfTasks = numTaks;
-  }
-  
-  @Override
-  public void reduce(Iterator<Partition<MatrixLine>> records, Collector<MatrixLine> out)
-      throws Exception {
-    
-    ids_.clear(); 
-    while (records.hasNext()) {
-      
-      //Delete the first two marker fields of the vectors and send each vector only once
-      //(Duplication of the same column do occur with several machince IDs as we sent the results for all machine in Iteration)
-    }
-  }
+	public MatrixLine(int index, double[] values){
+		super(index, values);
+	}
 
+	public int getIndex() { return f0; }
+
+	public double[] getValues() { return f1; }
 }

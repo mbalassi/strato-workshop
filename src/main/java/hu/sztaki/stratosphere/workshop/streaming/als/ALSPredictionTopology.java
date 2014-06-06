@@ -45,20 +45,20 @@ public class ALSPredictionTopology {
 		@Override
 		public void invoke(StreamRecord record) throws Exception {
 			String uidString = record.getString(0);
-			
+
 			// TODO parse uid from uidString
 			// TODO fill & emit outputRecord (uid, uservector)
 		}
 	}
-	
+
 	public static class PartialTopItemsTask extends UserTaskInvokable {
 		private static final long serialVersionUID = 1L;
 
 		private int topItemCount;
-		
+
 		// array containing item feature vectors
 		double[][] partialItemFeature;
-		
+
 		// global IDs of the Item partition
 		Integer[] itemIDs;
 		private int partitionSize;
@@ -71,11 +71,11 @@ public class ALSPredictionTopology {
 
 		public PartialTopItemsTask(int numberOfPartitions, int topItemCount) {
 			this.topItemCount = topItemCount;
-			
+
 			partialItemFeature = Util.getItemMatrix(numberOfPartitions);
 			itemIDs = Util.getItemIDs();
 			partitionSize = itemIDs.length;
-			
+
 			partialTopItemScores = new Double[topItemCount];
 			partialTopItemIDs = new Integer[topItemCount];
 		}
@@ -98,7 +98,6 @@ public class ALSPredictionTopology {
 		}
 
 	}
-	
 
 	public static class TopItemsTask extends UserTaskInvokable {
 		private static final long serialVersionUID = 1L;
@@ -106,13 +105,12 @@ public class ALSPredictionTopology {
 		private int numberOfPartitions;
 
 		// mapping the user ID to the global top items of the user
-		// partitionCount counts down to 0 (till the all the partitions are processed)
+		// partitionCount counts down to 0 (till the all the partitions are
+		// processed)
 		Map<Integer, Integer> partitionCount = new HashMap<Integer, Integer>();
 		Map<Integer, Integer[]> topIDs = new HashMap<Integer, Integer[]>();
 		Map<Integer, Double[]> topScores = new HashMap<Integer, Double[]>();
 
-		// TODO create a StreamRecord object for sending the results (uid, item
-		// IDs, global top scores)
 		StreamRecord outputRecord = new StreamRecord(new Tuple3<Integer, Integer[], Double[]>());
 
 		public TopItemsTask(int numberOfPartitions) {
@@ -145,7 +143,8 @@ public class ALSPredictionTopology {
 					outputRecord.setField(2, pTopScores);
 					emit(outputRecord);
 				} else {
-					// if there are more partitions the first one is has the initial
+					// if there are more partitions the first one is has the
+					// initial
 					// top scores
 					partitionCount.put(uid, numberOfPartitions - 1);
 					topIDs.put(uid, pTopIds);
@@ -161,7 +160,6 @@ public class ALSPredictionTopology {
 			// TODO update top IDs by using Util.merge()
 		}
 	}
-	
 
 	public static class TopItemsProcessorSink extends UserSinkInvokable {
 		private static final long serialVersionUID = 1L;
@@ -172,7 +170,6 @@ public class ALSPredictionTopology {
 		}
 
 	}
-
 
 	public static JobGraph getJobGraph(int partitionCount, int topItemCount) {
 
@@ -188,7 +185,6 @@ public class ALSPredictionTopology {
 		return graphBuilder.getJobGraph();
 	}
 
-	
 	public static void main(String[] arg) {
 		LogUtils.initializeDefaultConsoleLogger(Level.ERROR, Level.INFO);
 		ClusterUtil.runOnMiniCluster(getJobGraph(2, 2));
