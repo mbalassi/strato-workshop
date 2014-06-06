@@ -17,7 +17,6 @@ package hu.sztaki.stratosphere.workshop.batch.als;
 
 import eu.stratosphere.api.java.IterativeDataSet;
 import eu.stratosphere.core.fs.FileSystem;
-import hu.sztaki.stratosphere.workshop.batch.outputformat.ColumnOutputFormat;
 
 import eu.stratosphere.api.java.operators.DataSink;
 import eu.stratosphere.api.java.ExecutionEnvironment;

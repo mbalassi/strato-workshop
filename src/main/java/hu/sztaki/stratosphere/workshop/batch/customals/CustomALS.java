@@ -17,14 +17,10 @@ package hu.sztaki.stratosphere.workshop.batch.customals;
 
 import eu.stratosphere.api.java.IterativeDataSet;
 import eu.stratosphere.core.fs.FileSystem;
-import hu.sztaki.stratosphere.workshop.batch.als.ALS;
-import hu.sztaki.stratosphere.workshop.batch.outputformat.ColumnOutputFormat;
 import eu.stratosphere.api.java.DataSet;
 import eu.stratosphere.api.java.ExecutionEnvironment;
 import eu.stratosphere.api.java.operators.DataSink;
-import eu.stratosphere.api.java.tuple.Tuple2;
 import eu.stratosphere.api.java.tuple.Tuple3;
-import eu.stratosphere.api.java.tuple.Tuple5;
 
 //Parameters: [noSubStasks] [matrix] [output] [rank] [numberOfIterations] [lambda]
 public class CustomALS {
