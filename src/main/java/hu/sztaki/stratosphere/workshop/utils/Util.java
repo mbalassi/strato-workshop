@@ -72,7 +72,7 @@ public class Util {
 			topItems.add(new Item(ids[i], values[i]));
 		}
 
-		while (i < k) {
+		while (i < ids.length) {
 			topItems.add(new Item(ids[i], values[i]));
 			topItems.pollLast();
 			i++;
