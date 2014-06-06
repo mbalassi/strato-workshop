@@ -22,7 +22,6 @@ import java.util.Set;
 import eu.stratosphere.util.Collector;
 import eu.stratosphere.api.java.functions.GroupReduceFunction;
 import eu.stratosphere.api.java.tuple.Tuple2;
-import eu.stratosphere.api.java.tuple.Tuple5;
 
 public class OutputFormatter extends GroupReduceFunction<Partition<MatrixLine>, MatrixLine> {
 
