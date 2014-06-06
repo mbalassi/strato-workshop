@@ -17,7 +17,6 @@ package hu.sztaki.stratosphere.workshop.batch.wordcount;
 
 import eu.stratosphere.api.java.DataSet;
 import eu.stratosphere.api.java.ExecutionEnvironment;
-import eu.stratosphere.api.java.aggregation.Aggregations;
 import eu.stratosphere.api.java.functions.FlatMapFunction;
 import eu.stratosphere.api.java.tuple.Tuple2;
 import eu.stratosphere.util.Collector;
@@ -26,19 +25,14 @@ public class WordCount {
 	public static void main(String[] args) throws Exception {
 		int dop = 2;
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-		
+
 		env.setDegreeOfParallelism(dop);
 		String path = WordCount.class.getResource("/testdata/hamlet.txt").getPath();
 
 		DataSet<String> text = env.readTextFile(path);
 
-		DataSet<Tuple2<String, Integer>> wordCounts = text
-				.flatMap(new LineSplitter())
-				.groupBy(0)
-				.aggregate(Aggregations.SUM, 1);
-
-		wordCounts.print();
-
+		//TOOD: Implement word count
+		
 		env.execute("Word Count Example");
 	}
 
