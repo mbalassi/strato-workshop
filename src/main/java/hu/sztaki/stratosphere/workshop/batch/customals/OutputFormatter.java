@@ -24,11 +24,10 @@ import eu.stratosphere.api.java.functions.GroupReduceFunction;
 import eu.stratosphere.api.java.tuple.Tuple2;
 import eu.stratosphere.api.java.tuple.Tuple5;
 
-public class OutputFormatter extends GroupReduceFunction<Tuple5<Integer,Boolean,Integer,Integer,double[]>,
-       Tuple2<Integer,double[]>> {
+public class OutputFormatter extends GroupReduceFunction<Partition<MatrixLine>, MatrixLine> {
 
   private int numOfTasks;
-  private Tuple2<Integer,double[]> output = new Tuple2();
+  private MatrixLine output = new MatrixLine();
   private Set<Integer> ids_ = new HashSet<Integer>(); 
   
   public OutputFormatter(int numTaks) {
@@ -36,24 +35,22 @@ public class OutputFormatter extends GroupReduceFunction<Tuple5<Integer,Boolean,
   }
   
   @Override
-  public void reduce(Iterator<Tuple5<Integer,Boolean,Integer,Integer,double[]>> records, Collector<Tuple2<Integer,double[]>> out)
+  public void reduce(Iterator<Partition<MatrixLine>> records, Collector<MatrixLine> out)
       throws Exception {
-    
-    ids_.clear(); 
-    while (records.hasNext()) {
-      
-      //Delete the first two marker fields of the vectors and send each vector only once
-      //(Duplication of the same column do occur with several machince IDs as we sent the results for all machine in Iteration)
-      
-    
-    
-    
-    
-    
-    
 
-    
-    }
+	  ids_.clear();
+	  while (records.hasNext()) {
+		  Partition<MatrixLine> record = records.next();
+		  int index = record.f0;
+		  int id = record.f1.f0;
+		  if(!ids_.contains(id)){
+			  ids_.add(id);
+			  if (id % numOfTasks == index) {
+				  output.setFields(id,record.f1.f1);
+				  out.collect(output);
+			  }
+		  }
+	  }
   }
 
 }

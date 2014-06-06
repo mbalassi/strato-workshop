@@ -27,9 +27,8 @@ import eu.stratosphere.util.Collector;
 import eu.stratosphere.api.java.tuple.Tuple2;
 import eu.stratosphere.api.java.tuple.Tuple3;
 
-public class QIteration
-		extends
-		CoGroupFunction<Tuple3<Integer, Integer, Double>, Tuple3<Integer, Integer, double[]>, Tuple2<Integer, double[]>> {
+public class QIteration extends CoGroupFunction<Tuple3<Integer, Integer, Double>, Tuple3<Integer, Integer, double[]>,
+		Tuple2<Integer, double[]>> {
 
 	private int k;
 	private double lambda;
@@ -51,6 +50,11 @@ public class QIteration
 
 		double[][] matrix = new double[k][k];
 		double[][] vector = new double[k][1];
+
+		// Don't do anything if p is empty
+		if(!p.hasNext()){
+			return;
+		}
 
 		double element_ = lambda; // Regularization with Frobenius-norm
 

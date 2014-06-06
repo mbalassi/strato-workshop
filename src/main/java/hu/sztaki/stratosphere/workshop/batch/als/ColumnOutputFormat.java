@@ -13,20 +13,20 @@
  *
  **********************************************************************************************************************/
 
-package hu.sztaki.stratosphere.workshop.batch.outputformat;
+package hu.sztaki.stratosphere.workshop.batch.als;
+
+import eu.stratosphere.api.common.InvalidProgramException;
+import eu.stratosphere.api.common.io.FileOutputFormat;
+import eu.stratosphere.api.java.tuple.Tuple2;
+import eu.stratosphere.api.java.typeutils.InputTypeConfigurable;
+import eu.stratosphere.core.fs.Path;
+import eu.stratosphere.types.TypeInformation;
+import hu.sztaki.stratosphere.workshop.batch.customals.MatrixLine;
 
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-
-import eu.stratosphere.api.common.InvalidProgramException;
-import eu.stratosphere.api.common.io.FileOutputFormat;
-import eu.stratosphere.api.java.tuple.Tuple;
-import eu.stratosphere.api.java.typeutils.InputTypeConfigurable;
-import eu.stratosphere.types.TypeInformation;
-import eu.stratosphere.core.fs.Path;
-import eu.stratosphere.api.java.tuple.Tuple2;
 
 public class ColumnOutputFormat extends FileOutputFormat<Tuple2<Integer,double[]>> implements InputTypeConfigurable {
 
@@ -63,25 +63,25 @@ public class ColumnOutputFormat extends FileOutputFormat<Tuple2<Integer,double[]
   }
  
   @Override 
-  public void writeRecord(Tuple2<Integer,double[]> record) throws IOException {
-    if(record == null) {
+  public void writeRecord(Tuple2<Integer,double[]> line) throws IOException {
+    if(line == null) {
       throw new NullPointerException("Record cannot be null!");
     } else {
 	
-      if(record.f1 == null) {
+      if(line.f1 == null) {
         throw new NullPointerException("Record's array cannot be null!");
       } else {	    
-        double[] elements = record.f1;
+        double[] elements = line.f1;
         int k = elements.length;
     
         if(k == 0) {
           throw new NullPointerException("The length of vector cannot be 0 at output!");
         } else {
           //writing to output:
-          if(record.f0 == null) {
+          if(line.f0 == null) {
 	
 	  } else {
-	    Object id = record.f0;
+	    Object id = line.f0;
             this.wrt.write(id.toString());
             this.wrt.write(this.fieldDelimiter);
             for(int i=0; i<k; i++){

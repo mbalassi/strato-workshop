@@ -15,7 +15,6 @@
 
 package hu.sztaki.stratosphere.workshop.batch.als;
 
-import java.util.Collection;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,10 +29,10 @@ import eu.stratosphere.api.java.tuple.Tuple3;
 
 public class PIteration extends CoGroupFunction<Tuple3<Integer,Integer,Double>,Tuple3<Integer,Integer,double[]>,Tuple2<Integer,double[]>> {
 
-  private int k;
-  private double lambda;
-  private int id_;
-  private Tuple2<Integer,double[]> result_ = new Tuple2(); 
+	private int k;
+	private double lambda;
+	private int id_;
+	private Tuple2<Integer,double[]> result_ = new Tuple2();
 
   public PIteration(int k, double lambda) {
     this.k = k; 
