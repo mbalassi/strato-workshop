@@ -15,6 +15,9 @@
 
 package hu.sztaki.stratosphere.workshop.batch.customals;
 
+import eu.stratosphere.api.java.IterativeDataSet;
+import eu.stratosphere.core.fs.FileSystem;
+import hu.sztaki.stratosphere.workshop.batch.als.ALS;
 import hu.sztaki.stratosphere.workshop.batch.outputformat.ColumnOutputFormat;
 import eu.stratosphere.api.java.DataSet;
 import eu.stratosphere.api.java.ExecutionEnvironment;
@@ -26,17 +29,10 @@ import eu.stratosphere.api.java.tuple.Tuple5;
 //Parameters: [noSubStasks] [matrix] [output] [rank] [numberOfIterations] [lambda]
 public class CustomALS {
 
-	public static void main(String[] args) throws Exception {
+	public static void executeALS(int numSubTasks, String matrixInput, String output, int k,
+                                  int numIterations, double lambda) throws Exception {
 
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-
-		// parse job parameters
-		int numSubTasks = (args.length > 0 ? Integer.parseInt(args[0]) : 1);
-		String matrixInput = (args.length > 1 ? args[1] : "");
-		String output = (args.length > 2 ? args[2] : "");
-		int k = (args.length > 3 ? Integer.parseInt(args[3]) : 1);
-		int iteration = (args.length > 4 ? Integer.parseInt(args[4]) : 1);
-		double lambda = (args.length > 5 ? Double.parseDouble(args[5]) : 0.0);
 
 		// input rating matrix
 		DataSet<Tuple3<Integer, Integer, Double>> matrixSource = env.readCsvFile(matrixInput)
@@ -44,52 +40,70 @@ public class CustomALS {
 				.types(Integer.class, Integer.class, Double.class);
 
 		// create the rowwise partition of A for machines
-		DataSet<Tuple5<Integer, Boolean, Integer, Integer, double[]>> rowPartitionA = matrixSource
+		DataSet<Partition<MatrixEntry>> rowPartitionA = matrixSource
 				.map(new MultiplyMatrix(numSubTasks, 0)).name("MultiplyingMatrixRows");
 
 		// create the columnwise partition of A for machines
-		DataSet<Tuple5<Integer, Boolean, Integer, Integer, double[]>> colPartitionA = matrixSource
+		DataSet<Partition<MatrixEntry>> colPartitionA = matrixSource
 				.map(new MultiplyMatrix(numSubTasks, 1)).name("MultiplyingMatrixColumns");
 
 		// for creating a random matrix
-		DataSet<Tuple5<Integer, Boolean, Integer, Integer, double[]>> q = matrixSource.groupBy(1)
-				.reduceGroup(new RandomMatrix(numSubTasks, k)).name("Create q as a random matrix");
+		IterativeDataSet<Partition<MatrixLine>> initialQ = matrixSource
+                .groupBy(1)
+				.reduceGroup(new RandomMatrix(numSubTasks, k))
+                .name("Create q as a random matrix")
+                .iterate(numIterations);
 
-		DataSet<Tuple5<Integer, Boolean, Integer, Integer, double[]>> p = null;
+		DataSet<Partition<MatrixLine>> p = rowPartitionA.coGroup(initialQ)
+				.where(0)
+				.equalTo(0)
+				.with(new Iteration(numSubTasks, k, lambda, 0))
+				.name("P iteration");
 
-		// iteration
-		for (int i = 0; i < iteration; ++i) {
-			// create the dataset used in the update of p
-			DataSet<Tuple5<Integer, Boolean, Integer, Integer, double[]>> dataForPIteration = rowPartitionA
-					.union(q);
-			// update p
-			p = dataForPIteration.groupBy(0).reduceGroup(new Iteration(numSubTasks, k, lambda, 0))
-					.name("P iter: " + (i + 1));
+		DataSet<Partition<MatrixLine>> nextQ = colPartitionA.coGroup(p)
+				.where(0)
+				.equalTo(0)
+				.with(new Iteration(numSubTasks, k, lambda, 1))
+				.name("Q iteration");
 
-			// create the dataset used in the update of q
-			DataSet<Tuple5<Integer, Boolean, Integer, Integer, double[]>> dataForQIteration = colPartitionA
-					.union(p);
-			// update q
-			q = dataForQIteration.groupBy(0).reduceGroup(new Iteration(numSubTasks, k, lambda, 1))
-					.name("Q iter: " + (i + 1));
-		}
+		DataSet<Partition<MatrixLine>> q = initialQ.closeWith(nextQ);
+
+		p = rowPartitionA.coGroup(q)
+				.where(0)
+				.equalTo(0)
+				.with(new Iteration(numSubTasks, k, lambda, 0))
+				.name("P iteration");
 
 		// delete marker fields
-		DataSet<Tuple2<Integer, double[]>> pOutFormat = p.groupBy(0)
+		DataSet<MatrixLine> pOutFormat = p.groupBy(0)
 				.reduceGroup(new OutputFormatter(numSubTasks)).name("P output format");
 
-		DataSet<Tuple2<Integer, double[]>> qOutFormat = q.groupBy(0)
+		DataSet<MatrixLine> qOutFormat = q.groupBy(0)
 				.reduceGroup(new OutputFormatter(numSubTasks)).name("Q output format");
 
 		// output
 		ColumnOutputFormat pFormat = new ColumnOutputFormat(output + "/p");
-		DataSink<Tuple2<Integer, double[]>> pSink = pOutFormat.output(pFormat);
+		pFormat.setWriteMode(FileSystem.WriteMode.OVERWRITE);
+		DataSink<MatrixLine> pSink = pOutFormat.output(pFormat);
 
 		ColumnOutputFormat qFormat = new ColumnOutputFormat(output + "/q");
-		DataSink<Tuple2<Integer, double[]>> qSink = qOutFormat.output(qFormat);
+		qFormat.setWriteMode(FileSystem.WriteMode.OVERWRITE);
+		DataSink<MatrixLine> qSink = qOutFormat.output(qFormat);
 
 		env.setDegreeOfParallelism(numSubTasks);
 		env.execute("CustomALS");
+	}
+
+	public static void main(String[] args) throws Exception{
+		int numSubTasks = 1;
+		String sampleDB2 = "file://" + CustomALS.class.getResource("/testdata/als_batch/sampledb2.csv");
+		String sampleDB3 = "file://" + CustomALS.class.getResource("/testdata/als_batch/sampledb3.csv");
+		String output = "file:///" + System.getProperty("user.dir") + "/als_custom_output";
+		int k = 5;
+		int numIterations = 3;
+		double lambda = 0.1;
+
+		CustomALS.executeALS(numSubTasks, sampleDB2, output, k, numIterations, lambda);
 	}
 
 }

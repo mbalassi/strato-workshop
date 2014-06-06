@@ -23,12 +23,11 @@ import eu.stratosphere.api.java.functions.MapFunction;
 import eu.stratosphere.api.java.tuple.Tuple3;
 import eu.stratosphere.api.java.tuple.Tuple5;
 
-public class MultiplyMatrix extends MapFunction<Tuple3<Integer,Integer,Double>,Tuple5<Integer,Boolean,Integer,Integer,double[]>> {
+public class MultiplyMatrix extends MapFunction<Tuple3<Integer,Integer,Double>,Partition<MatrixEntry>> {
 
   private int numOfTasks;
   private Tuple5<Integer,Boolean,Integer,Integer,double[]> output = new Tuple5();
   private int index;
-  private static final boolean TRUE = true;//represents that the output Tuple corresponds to a matrix element
   
   public MultiplyMatrix(int numTask, int index) {
     this.numOfTasks = numTask; 
@@ -36,7 +35,7 @@ public class MultiplyMatrix extends MapFunction<Tuple3<Integer,Integer,Double>,T
   }
   
   @Override
-  public Tuple5<Integer,Boolean,Integer,Integer,double[]> map(Tuple3<Integer,Integer, Double> record) throws Exception {
+  public Partition<MatrixEntry> map(Tuple3<Integer,Integer, Double> record) throws Exception {
 
     int ownIndex = record.getField(index);//when ==0 then we do rowwise partition, when ==1 we do a columnwise partition
     

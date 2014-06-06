@@ -26,7 +26,7 @@ public class MultiplyVector
 
 	@Override
 	public Tuple3<Integer, Integer, double[]> join(Tuple3<Integer, Integer, Double> matrixElement,
-			Tuple2<Integer, double[]> columnOfQ) {
+												   Tuple2<Integer, double[]> columnOfQ) {
 
 		// TODO: send the given j^th column of Q matrix with all i rowId where
 		// the a_ij element is given in the A rating matrix.

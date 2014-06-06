@@ -24,7 +24,7 @@ import eu.stratosphere.api.java.functions.GroupReduceFunction;
 import eu.stratosphere.api.java.tuple.Tuple3;
 import eu.stratosphere.api.java.tuple.Tuple5;
 
-public class RandomMatrix extends GroupReduceFunction<Tuple3<Integer,Integer,Double>,Tuple5<Integer,Boolean,Integer, Integer, double[]>> {
+public class RandomMatrix extends GroupReduceFunction<Tuple3<Integer,Integer,Double>,Partition<MatrixLine>> {
 
   private int k;
   private int numOfTasks;
@@ -41,7 +41,7 @@ public class RandomMatrix extends GroupReduceFunction<Tuple3<Integer,Integer,Dou
   }
 
   @Override
-  public void reduce(Iterator<Tuple3<Integer,Integer,Double>> elements, Collector<Tuple5<Integer, Boolean, Integer, Integer, double[]>> out) 
+  public void reduce(Iterator<Tuple3<Integer,Integer,Double>> elements, Collector<Partition<MatrixLine>> out)
    throws Exception {
     Tuple3<Integer,Integer,Double> element = elements.next();
     vector_elements = new double[k];
