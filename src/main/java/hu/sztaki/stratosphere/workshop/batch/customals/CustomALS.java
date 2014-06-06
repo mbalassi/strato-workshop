@@ -31,9 +31,9 @@ public class CustomALS {
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
 		// input rating matrix
-		DataSet<Tuple3<Integer, Integer, Double>> matrixSource = env.readCsvFile(matrixInput)
+		DataSet<MatrixEntry> matrixSource = env.readCsvFile(matrixInput)
 				.fieldDelimiter('|').lineDelimiter("|\n").includeFields(true, true, true)
-				.types(Integer.class, Integer.class, Double.class);
+				.tupleType(MatrixEntry.class);
 
 		// create the rowwise partition of A for machines
 		DataSet<Partition<MatrixEntry>> rowPartitionA = matrixSource
