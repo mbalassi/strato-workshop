@@ -16,10 +16,9 @@
 package hu.sztaki.stratosphere.workshop.batch.customals;
 
 import eu.stratosphere.api.java.functions.MapFunction;
-import eu.stratosphere.api.java.tuple.Tuple3;
 import eu.stratosphere.api.java.tuple.Tuple5;
 
-public class MultiplyMatrix extends MapFunction<Tuple3<Integer,Integer,Double>,Partition<MatrixEntry>> {
+public class MultiplyMatrix extends MapFunction<MatrixEntry,Partition<MatrixEntry>> {
 
 	private int numOfTasks;
 	private Tuple5<Integer,Boolean,Integer,Integer,double[]> output = new Tuple5();
@@ -31,10 +30,11 @@ public class MultiplyMatrix extends MapFunction<Tuple3<Integer,Integer,Double>,P
 	}
 
 	@Override
-	public Partition<MatrixEntry> map(Tuple3<Integer,Integer, Double> record) throws Exception {
-		int ownIndex = record.getField(index);//when ==0 then we do rowwise partition, when ==1 we do a columnwise partition
+	public Partition<MatrixEntry> map(MatrixEntry entry) throws Exception {
+		int ownIndex = entry.getField(index);//when ==0 then we do rowwise partition,
+		// when ==1 we do a columnwise partition
 		int machineIndex = ownIndex % numOfTasks;
-		return new Partition(machineIndex, new MatrixEntry(record.f0, record.f1, record.f2));
+		return new Partition(machineIndex, new MatrixEntry(entry.getRowIndex(), entry.getColumnIndex(), entry.getEntry()));
 	}
 
 }
