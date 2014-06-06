@@ -24,7 +24,10 @@ import eu.stratosphere.util.Collector;
 
 public class WordCount {
 	public static void main(String[] args) throws Exception {
+		int dop = 2;
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+		
+		env.setDegreeOfParallelism(dop);
 		String path = WordCount.class.getResource("/testdata/hamlet.txt").getPath();
 
 		DataSet<String> text = env.readTextFile(path);
