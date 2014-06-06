@@ -15,10 +15,6 @@
 
 package hu.sztaki.stratosphere.workshop.batch.customals;
 
-import java.util.Collection;
-import java.util.Iterator;
-
-import eu.stratosphere.util.Collector;
 import eu.stratosphere.api.java.functions.MapFunction;
 import eu.stratosphere.api.java.tuple.Tuple3;
 import eu.stratosphere.api.java.tuple.Tuple5;
