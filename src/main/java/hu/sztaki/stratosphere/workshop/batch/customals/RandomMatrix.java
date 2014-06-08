@@ -26,29 +26,29 @@ import eu.stratosphere.api.java.tuple.Tuple5;
 
 public class RandomMatrix extends GroupReduceFunction<MatrixEntry, Partition<MatrixLine>> {
 
-  private int k;
-  private int numOfTasks;
+	private int k;
+	private int numOfTasks;
 
-  private double[] vector_elements;
-  private final Random RANDOM = new Random();
+	private double[] vector_elements;
+	private final Random RANDOM = new Random();
 
-  public RandomMatrix(int numTask, int k) {
-    this.numOfTasks = numTask; 
-    this.k = k;
-  }
-
-  @Override
-  public void reduce(Iterator<MatrixEntry> elements, Collector<Partition<MatrixLine>> out)
-   throws Exception {
-    Tuple3<Integer,Integer,Double> element = elements.next();
-    vector_elements = new double[k];
-	for (int i = 0; i < k; ++i) {
-	  vector_elements[i] = 1 + RANDOM.nextDouble() / 2;
+	public RandomMatrix(int numTask, int k) {
+		this.numOfTasks = numTask;
+		this.k = k;
 	}
 
-	for(int i=0; i<numOfTasks; i++){
-	  out.collect(new Partition<MatrixLine>(i, new MatrixLine(element.f1, vector_elements)));
-	}
+	@Override
+	public void reduce(Iterator<MatrixEntry> elements, Collector<Partition<MatrixLine>> out)
+			throws Exception {
+		Tuple3<Integer, Integer, Double> element = elements.next();
+		vector_elements = new double[k];
+		for (int i = 0; i < k; ++i) {
+			vector_elements[i] = 1 + RANDOM.nextDouble() / 2;
+		}
 
-  }
+		for (int i = 0; i < numOfTasks; i++) {
+			out.collect(new Partition<MatrixLine>(i, new MatrixLine(element.f1, vector_elements)));
+		}
+
+	}
 }

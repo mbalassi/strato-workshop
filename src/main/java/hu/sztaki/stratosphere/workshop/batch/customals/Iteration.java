@@ -27,7 +27,8 @@ import eu.stratosphere.api.java.functions.CoGroupFunction;
 import eu.stratosphere.api.java.tuple.Tuple2;
 import eu.stratosphere.util.Collector;
 
-public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition<MatrixLine>, Partition<MatrixLine>> {
+public class Iteration extends
+		CoGroupFunction<Partition<MatrixEntry>, Partition<MatrixLine>, Partition<MatrixLine>> {
 
 	private int k;
 	private int numOfTasks;
@@ -43,13 +44,13 @@ public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition
 	}
 
 	@Override
-	public void coGroup(Iterator<Partition<MatrixEntry>> entries, Iterator<Partition<MatrixLine>> lines,
-					   Collector<Partition<MatrixLine>> out)throws Exception {
-		Map<Integer, List<Tuple2<Integer, Double>>> matrixElements =
-				new HashMap<Integer, List<Tuple2<Integer, Double>>>();
+	public void coGroup(Iterator<Partition<MatrixEntry>> entries,
+			Iterator<Partition<MatrixLine>> lines, Collector<Partition<MatrixLine>> out)
+			throws Exception {
+		Map<Integer, List<Tuple2<Integer, Double>>> matrixElements = new HashMap<Integer, List<Tuple2<Integer, Double>>>();
 		Map<Integer, double[]> vectors = new HashMap<Integer, double[]>();
 
-		if(!lines.hasNext()){
+		if (!lines.hasNext()) {
 			return;
 		}
 
@@ -58,13 +59,13 @@ public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition
 			addToMatrixMap(matrixElements, entry);
 		}
 
-		while(lines.hasNext()){
+		while (lines.hasNext()) {
 			MatrixLine line = lines.next().f1;
 			addToVectorMap(vectors, line);
 		}
 
 		for (int recordIndex : matrixElements.keySet()) {
-			//solve the linear equation system corresponding to this machine
+			// solve the linear equation system corresponding to this machine
 			Matrix p = compute(recordIndex, matrixElements, vectors);
 
 			writeOutput(p, recordIndex, out);
@@ -78,23 +79,24 @@ public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition
 			output_elements[i] = p.get(i, 0);
 		}
 
-		for (int i = 0; i < numOfTasks; ++i) {//send new vector for all machines
-			Partition<MatrixLine> output = new Partition<MatrixLine>(i, new MatrixLine(recordIndex, output_elements));
+		for (int i = 0; i < numOfTasks; ++i) {// send new vector for all
+												// machines
+			Partition<MatrixLine> output = new Partition<MatrixLine>(i, new MatrixLine(recordIndex,
+					output_elements));
 			out.collect(output);
 		}
-
-
 	}
 
 	private Matrix compute(int recordIndex,
-						   Map<Integer, List<Tuple2<Integer, Double>>> matrixElements, Map<Integer, double[]> vectors) {
+			Map<Integer, List<Tuple2<Integer, Double>>> matrixElements,
+			Map<Integer, double[]> vectors) {
 
 		double[][] matrix = new double[k][k];
 
-		double element = lambda; //Lambda-regularization
+		double element = lambda; // Lambda-regularization
 
-		if(lambda != 0.0) {
-			for(double[] row : matrix) {
+		if (lambda != 0.0) {
+			for (double[] row : matrix) {
 				Arrays.fill(row, element);
 			}
 		}
@@ -123,19 +125,18 @@ public class Iteration extends CoGroupFunction<Partition<MatrixEntry>, Partition
 		}
 		Matrix a = new Matrix(matrix);
 		Matrix b = new Matrix(column);
-		Matrix p = a./*chol().*/solve(b);
+		Matrix p = a./* chol(). */solve(b);
 		return p;
 	}
 
-	private void addToVectorMap(Map<Integer, double[]> vectors,
-								MatrixLine line) {
+	private void addToVectorMap(Map<Integer, double[]> vectors, MatrixLine line) {
 		vectors.put(line.getIndex(), line.getValues());
 	}
 
-	private void addToMatrixMap(Map<Integer, List<Tuple2<Integer, Double>>> map, MatrixEntry entry) throws
-			Exception {
+	private void addToMatrixMap(Map<Integer, List<Tuple2<Integer, Double>>> map, MatrixEntry entry)
+			throws Exception {
 		int recordIndex = entry.getField(idx);
-		int otherIndex = entry.getField(1-idx);
+		int otherIndex = entry.getField(1 - idx);
 		double value = entry.getEntry();
 
 		if (map.containsKey(recordIndex)) {
